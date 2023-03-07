@@ -2,7 +2,7 @@
 // http://127.0.0.1:32888/discord/oauth?code=iHJpDsv0Nc4zfmhg9qoEoqOtDKQ95p
 
 use colored::Colorize;
-use std::{future::Future, net::Ipv4Addr, sync::RwLock, time::Duration};
+use std::{net::Ipv4Addr, sync::RwLock, time::Duration};
 use tokio::time::sleep;
 
 use rocket::{get, info, response::Redirect, routes, Shutdown, State};
