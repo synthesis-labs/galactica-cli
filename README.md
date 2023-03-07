@@ -2,7 +2,7 @@
 
 Your swiss army knife
 
-## Examples
+## Example usage
 
 [![asciicast](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6.svg)](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6)
 
@@ -13,6 +13,8 @@ only "HIGH" or "LOW" and a one sentence reason why'
 HIGH - The code is well structured, modular, and uses good programming practices 
 like async-await, error handling, and command-line argument parsing.
 ```
+
+## Other examples
 
 ### Describe the components of a project
 ```sh
