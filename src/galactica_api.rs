@@ -1,21 +1,23 @@
 use galactica_lib::auth::{DiscordAccessToken, GetTokenRequest, GetTokenResponse};
-use galactica_lib::specs::{HistoryEntry, Instruction, InstructionRequest, InstructionResponse};
+use galactica_lib::specs::{
+    ErrorResponse, HistoryEntry, Instruction, InstructionRequest, InstructionResponse,
+};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::{config::Config, errors::Error};
+use crate::{config::Config, errors::ClientError};
 
 pub async fn api_call<'a, REQ, RES>(
     config: &Config,
     endpoint: &str,
     request: &REQ,
-) -> Result<RES, Error>
+) -> Result<RES, ClientError>
 where
     REQ: Serialize,
     RES: DeserializeOwned, // for why -> https://serde.rs/lifetimes.html
 {
-    let _request_body =
-        serde_json::to_string(&request).map_err(|e| Error::UnableToSerialize(e.to_string()))?;
+    let _request_body = serde_json::to_string(&request)
+        .map_err(|e| ClientError::UnableToSerialize(e.to_string()))?;
 
     // println!("Request body => {}", _request_body);
 
@@ -26,22 +28,28 @@ where
         .json(&request)
         .send()
         .await
-        .map_err(|e| Error::GalacticaApiError(e.to_string()))?;
+        .map_err(|e| ClientError::GalacticaApiError(e.to_string()))?;
 
     let response_body = resp
         .text()
         .await
-        .map_err(|e| Error::GalacticaApiError(e.to_string()))?;
+        .map_err(|e| ClientError::GalacticaApiError(e.to_string()))?;
 
     // println!("Response body => {}", response_body);
 
-    let response: RES = serde_json::from_str(&response_body)
-        .map_err(|e| Error::UnableToDeserialize(e.to_string(), response_body.clone()))?;
+    // Test whether we have received an error from the Galactica API
+    //
+    if let Ok(error_response) = serde_json::from_str::<ErrorResponse>(&response_body) {
+        Err(ClientError::GalacticaApiReturnedError(error_response.error))
+    } else {
+        let response: RES = serde_json::from_str(&response_body)
+            .map_err(|e| ClientError::UnableToDeserialize(e.to_string(), response_body.clone()))?;
 
-    Ok(response)
+        Ok(response)
+    }
 }
 
-pub async fn get_token(config: &Config, code: &String) -> Result<DiscordAccessToken, Error> {
+pub async fn get_token(config: &Config, code: &String) -> Result<DiscordAccessToken, ClientError> {
     let response: GetTokenResponse = api_call(
         config,
         "/auth/get_token",
@@ -56,7 +64,7 @@ pub async fn instruction(
     instruction: Instruction,
     n: u32,
     history: Vec<HistoryEntry>,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<String>, ClientError> {
     let response: InstructionResponse = api_call(
         config,
         "/instruction",

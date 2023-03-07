@@ -3,10 +3,10 @@ use std::fmt::Display;
 type ConfigFileName = String;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum ClientError {
     ConfigError(ConfigFileName, String),
-    OpenAIError(String),
     GalacticaApiError(String),
+    GalacticaApiReturnedError(galactica_lib::errors::Error),
     UnableToSerialize(String),
     UnableToDeserialize(String, String),
     CommandError(String),
@@ -17,40 +17,40 @@ pub enum Error {
     NotImplemented,
 }
 
-impl Display for Error {
+impl Display for ClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::ConfigError(filename, msg) => {
+            Self::ConfigError(filename, msg) => {
                 writeln!(f, "ConfigError: {} ({})", msg, filename)
             }
-            Error::OpenAIError(msg) => {
-                writeln!(f, "OpenAIError: {}", msg)
-            }
-            Error::GalacticaApiError(msg) => {
+            Self::GalacticaApiError(msg) => {
                 writeln!(f, "GalacticaApiError: {}", msg)
             }
-            Error::UnableToSerialize(msg) => {
+            Self::GalacticaApiReturnedError(inner) => {
+                writeln!(f, "GalacticaApiReturnedError: {:?}", inner)
+            }
+            Self::UnableToSerialize(msg) => {
                 writeln!(f, "UnableToSerialize: {}", msg)
             }
-            Error::UnableToDeserialize(msg, body) => {
+            Self::UnableToDeserialize(msg, body) => {
                 writeln!(f, "UnableToDeserialize: {}\nBody: {}", msg, body)
             }
-            Error::CommandError(msg) => {
+            Self::CommandError(msg) => {
                 writeln!(f, "CommandError: {}", msg)
             }
-            Error::ParsingError(msg) => {
+            Self::ParsingError(msg) => {
                 writeln!(f, "ParsingError: {}", msg)
             }
-            Error::UnableToLaunchWebServer(msg) => {
+            Self::UnableToLaunchWebServer(msg) => {
                 writeln!(f, "UnableToLaunchWebServer: {}", msg)
             }
-            Error::StdinError(msg) => {
+            Self::StdinError(msg) => {
                 writeln!(f, "StdinError: {}", msg)
             }
-            Error::NotLoggedIn(msg) => {
+            Self::NotLoggedIn(msg) => {
                 writeln!(f, "NotLoggedIn: {}", msg)
             }
-            Error::NotImplemented => write!(f, "NotImplemented"),
+            Self::NotImplemented => write!(f, "NotImplemented"),
         }
     }
 }

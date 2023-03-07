@@ -6,7 +6,7 @@ use std::{
 use galactica_lib::{auth::DiscordAccessToken, specs::HistoryEntry};
 use serde::{Deserialize, Serialize};
 
-use crate::errors::Error;
+use crate::errors::ClientError;
 
 const CONFIG_PATH: &str = ".galactica/config.json";
 
@@ -28,17 +28,17 @@ impl Default for Config {
     }
 }
 
-pub fn read() -> Result<Config, Error> {
+pub fn read() -> Result<Config, ClientError> {
     if exists() {
         let contents = read_to_string(Path::new(&config_file_path())).map_err(|e| {
-            Error::ConfigError(
+            ClientError::ConfigError(
                 config_file_path(),
                 format!("Error while reading: {}", e.to_string()),
             )
         })?;
 
         let config: Config = serde_json::from_str(contents.as_str()).map_err(|e| {
-            Error::ConfigError(
+            ClientError::ConfigError(
                 CONFIG_PATH.to_string(),
                 format!("Error while deserializing: {}", e.to_string()),
             )
@@ -46,16 +46,16 @@ pub fn read() -> Result<Config, Error> {
 
         Ok(config)
     } else {
-        Err(Error::ConfigError(
+        Err(ClientError::ConfigError(
             CONFIG_PATH.to_string(),
             "Does not exist, please run login first!".to_string(),
         ))
     }
 }
 
-pub fn write(config: &Config) -> Result<(), Error> {
+pub fn write(config: &Config) -> Result<(), ClientError> {
     let json = serde_json::to_string(config).map_err(|_| {
-        Error::ConfigError(
+        ClientError::ConfigError(
             CONFIG_PATH.to_string(),
             "Unable to serialize config object".to_string(),
         )
@@ -63,7 +63,7 @@ pub fn write(config: &Config) -> Result<(), Error> {
 
     if let Some(parent_dir) = Path::new(&config_file_path()).parent() {
         fs::create_dir_all(parent_dir).map_err(|e| {
-            Error::ConfigError(
+            ClientError::ConfigError(
                 config_file_path(),
                 format!(
                     "Unable to create directories while attempting to write config file due to {}",
@@ -74,7 +74,7 @@ pub fn write(config: &Config) -> Result<(), Error> {
     }
 
     fs::write(config_file_path(), json.as_str()).map_err(|e| {
-        Error::ConfigError(
+        ClientError::ConfigError(
             config_file_path(),
             format!("Unable to write to config file due to {}", e.to_string()),
         )

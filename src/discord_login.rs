@@ -7,7 +7,7 @@ use tokio::time::sleep;
 
 use rocket::{get, info, response::Redirect, routes, Shutdown, State};
 
-use crate::{config::Config, errors::Error, galactica_api};
+use crate::{config::Config, errors::ClientError, galactica_api};
 
 const DISCORD_LOGIN: &str = "https://discord.com/api/oauth2/authorize?client_id=1081168959941918801&redirect_uri=http%3A%2F%2F127.0.0.1%3A32888%2Fdiscord%2Foauth&response_type=code&scope=identify%20email";
 
@@ -28,7 +28,7 @@ pub async fn open_browser() -> () {
     }
 }
 
-pub async fn launch_rocket(current_config: Config) -> Result<Config, Error> {
+pub async fn launch_rocket(current_config: Config) -> Result<Config, ClientError> {
     // Launch the webserver and inject the current config as a rocket managed state
     //
     let rocket_async = rocket::build()
@@ -46,7 +46,7 @@ pub async fn launch_rocket(current_config: Config) -> Result<Config, Error> {
     //
     let rocket = rocket_async
         .await
-        .map_err(|e| Error::UnableToLaunchWebServer(e.to_string()))?;
+        .map_err(|e| ClientError::UnableToLaunchWebServer(e.to_string()))?;
 
     // Grab the updated config (modified by the webserver hopefully)
     //
@@ -59,7 +59,7 @@ pub async fn launch_rocket(current_config: Config) -> Result<Config, Error> {
     Ok(updated_config)
 }
 
-pub async fn perform_login(current_config: Config) -> Result<Config, Error> {
+pub async fn perform_login(current_config: Config) -> Result<Config, ClientError> {
     tokio::join!(launch_rocket(current_config), open_browser()).0
 }
 

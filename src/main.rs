@@ -5,9 +5,12 @@ use std::io::{self, Read};
 use clap::{Arg, Command};
 use colored::Colorize;
 use galactica::{self, config, discord_login, galactica_api};
-use galactica::{config::Config, errors::Error};
+use galactica::{config::Config, errors::ClientError};
 use galactica_lib::specs::{Agent, HistoryEntry, Instruction};
 use tokio::runtime::Builder;
+
+#[cfg(windows)]
+use colored::control;
 
 fn cli() -> Command {
     Command::new("cli")
@@ -29,7 +32,7 @@ fn cli() -> Command {
         .subcommand(Command::new("reset").about("Reset history"))
 }
 
-async fn invoke() -> Result<(), Error> {
+async fn invoke() -> Result<(), ClientError> {
     let matches = cli().get_matches();
 
     match matches.subcommand() {
@@ -65,7 +68,7 @@ async fn invoke() -> Result<(), Error> {
             let config = config::read()?;
 
             if config.token.is_none() {
-                return Err(Error::NotLoggedIn("Please login first!".to_string()));
+                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
             }
 
             let prompt = get_prompt(submatches)?;
@@ -104,7 +107,7 @@ async fn invoke() -> Result<(), Error> {
             let config = config::read()?;
 
             if config.token.is_none() {
-                return Err(Error::NotLoggedIn("Please login first!".to_string()));
+                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
             }
 
             let prompt = get_prompt(submatches)?;
@@ -135,10 +138,12 @@ async fn invoke() -> Result<(), Error> {
 
 // A handy little fn to get the arguments as a single long string ("prompt")
 //
-fn get_prompt(submatches: &clap::ArgMatches) -> Result<String, Error> {
+fn get_prompt(submatches: &clap::ArgMatches) -> Result<String, ClientError> {
     Ok(submatches
         .get_many("prompt")
-        .ok_or(Error::CommandError("No arguments provided".to_string()))?
+        .ok_or(ClientError::CommandError(
+            "No arguments provided".to_string(),
+        ))?
         .map(|s: &String| s.clone())
         .collect::<Vec<String>>()
         .join(" "))
@@ -155,12 +160,17 @@ fn get_stdin() -> Option<String> {
 }
 
 fn main() {
+    // Make colourize work in windows
+    //
+    #[cfg(windows)]
+    control::set_virtual_terminal(true).unwrap();
+
     let rt = Builder::new_current_thread().enable_all().build().unwrap();
     let r = rt.block_on(invoke());
 
     match r {
         Err(err) => {
-            println!("{}", err)
+            println!("{}", err.to_string().red())
         }
         Ok(_) => {}
     }
