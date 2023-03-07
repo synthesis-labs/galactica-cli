@@ -4,6 +4,8 @@ Your swiss army knife
 
 ## Examples
 
+[![asciicast](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6.svg)](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6)
+
 ### Code review a single file
 ```sh
 $ cat src/main.rs | galactica code 'review the quality of this code - output 
