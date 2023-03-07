@@ -14,6 +14,8 @@ $ brew tap synthesis-labs/galactica
 $ brew install galactica
 ```
 
+For Windows please download the release from the github release page.
+
 ### Code review a single file
 ```sh
 $ cat src/main.rs | galactica code 'review the quality of this code - output 

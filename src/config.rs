@@ -48,7 +48,7 @@ pub fn read() -> Result<Config, Error> {
     } else {
         Err(Error::ConfigError(
             CONFIG_PATH.to_string(),
-            "Does not exist, please run setup first!".to_string(),
+            "Does not exist, please run login first!".to_string(),
         ))
     }
 }

@@ -13,6 +13,7 @@ pub enum Error {
     ParsingError(String),
     UnableToLaunchWebServer(String),
     StdinError(String),
+    NotLoggedIn(String),
     NotImplemented,
 }
 
@@ -45,6 +46,9 @@ impl Display for Error {
             }
             Error::StdinError(msg) => {
                 writeln!(f, "StdinError: {}", msg)
+            }
+            Error::NotLoggedIn(msg) => {
+                writeln!(f, "NotLoggedIn: {}", msg)
             }
             Error::NotImplemented => write!(f, "NotImplemented"),
         }

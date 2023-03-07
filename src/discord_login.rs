@@ -1,18 +1,22 @@
 // After auth we will receive the code via:
 // http://127.0.0.1:32888/discord/oauth?code=iHJpDsv0Nc4zfmhg9qoEoqOtDKQ95p
 
-use std::{net::Ipv4Addr, sync::RwLock};
+use colored::Colorize;
+use std::{future::Future, net::Ipv4Addr, sync::RwLock, time::Duration};
+use tokio::time::sleep;
 
-use rocket::{get, info, routes, Shutdown, State};
+use rocket::{get, info, response::Redirect, routes, Shutdown, State};
 
 use crate::{config::Config, errors::Error, galactica_api};
 
 const DISCORD_LOGIN: &str = "https://discord.com/api/oauth2/authorize?client_id=1081168959941918801&redirect_uri=http%3A%2F%2F127.0.0.1%3A32888%2Fdiscord%2Foauth&response_type=code&scope=identify%20email";
 
-pub async fn perform_login(current_config: Config) -> Result<Config, Error> {
-    println!("Please click the following link:\n\n{}\n", DISCORD_LOGIN);
+pub async fn open_browser() -> () {
+    sleep(Duration::from_secs(1)).await;
+    println!("Attempting to automatically open your browser, please wait...");
+    sleep(Duration::from_secs(1)).await;
 
-    match open::that(DISCORD_LOGIN) {
+    match open::that("http://127.0.0.1:32888/") {
         Err(err) => {
             println!("Error while opening browser: {}", err);
             println!(
@@ -22,24 +26,27 @@ pub async fn perform_login(current_config: Config) -> Result<Config, Error> {
         }
         Ok(_) => (),
     }
+}
 
+pub async fn launch_rocket(current_config: Config) -> Result<Config, Error> {
     // Launch the webserver and inject the current config as a rocket managed state
     //
-    let rocket = rocket::build()
+    let rocket_async = rocket::build()
         .configure(rocket::Config {
             port: 32888,
             address: Ipv4Addr::new(127, 0, 0, 1).into(),
             ..rocket::Config::debug_default()
         })
         .manage(RwLock::new(current_config))
-        .mount("/", routes![discord_oauth_code_receive])
-        .launch()
-        .await
-        .map_err(|e| Error::UnableToLaunchWebServer(e.to_string()))?;
+        .mount("/", routes![root, discord_oauth_code_receive])
+        .launch();
 
     //
     // The webserver will block here until it shuts down...
     //
+    let rocket = rocket_async
+        .await
+        .map_err(|e| Error::UnableToLaunchWebServer(e.to_string()))?;
 
     // Grab the updated config (modified by the webserver hopefully)
     //
@@ -50,6 +57,15 @@ pub async fn perform_login(current_config: Config) -> Result<Config, Error> {
         .unwrap()
         .clone();
     Ok(updated_config)
+}
+
+pub async fn perform_login(current_config: Config) -> Result<Config, Error> {
+    tokio::join!(launch_rocket(current_config), open_browser()).0
+}
+
+#[get("/")]
+async fn root() -> Redirect {
+    Redirect::to(DISCORD_LOGIN)
 }
 
 #[get("/discord/oauth?<code>")]
@@ -82,9 +98,13 @@ async fn discord_oauth_code_receive(
 
             shutdown.notify();
 
-            String::from(
-                "OK - you are logged in to Galactica! You are welcome to close this window.",
-            )
+            println!("You are now logged in!\n");
+            println!("------------------------------------------------------");
+            println!("{}", "Please feel free to join our discord at:".green());
+            println!("{}", "https://discord.gg/5eC72nkpw6".bright_green());
+            println!("------------------------------------------------------");
+
+            String::from("OK - you are logged in to Galactica! You can now close this window.")
         }
     }
 }

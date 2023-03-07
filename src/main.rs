@@ -39,8 +39,6 @@ async fn invoke() -> Result<(), Error> {
             let config = config::read().unwrap_or(Config::default());
             let new_config = discord_login::perform_login(config).await?;
             config::write(&new_config)?;
-
-            println!("Logged in!");
         }
         Some(("reset", _submatches)) => {
             // Read the config, or use a default one if not available
@@ -49,7 +47,7 @@ async fn invoke() -> Result<(), Error> {
             new_config.history = vec![];
             config::write(&new_config)?;
 
-            println!("Reset history!");
+            println!("History cleared");
         }
         Some(("history", _submatches)) => {
             // Read the config, or use a default one if not available
@@ -65,6 +63,10 @@ async fn invoke() -> Result<(), Error> {
         }
         Some(("chat", submatches)) => {
             let config = config::read()?;
+
+            if config.token.is_none() {
+                return Err(Error::NotLoggedIn("Please login first!".to_string()));
+            }
 
             let prompt = get_prompt(submatches)?;
 
@@ -100,6 +102,10 @@ async fn invoke() -> Result<(), Error> {
         }
         Some(("code", submatches)) => {
             let config = config::read()?;
+
+            if config.token.is_none() {
+                return Err(Error::NotLoggedIn("Please login first!".to_string()));
+            }
 
             let prompt = get_prompt(submatches)?;
 
