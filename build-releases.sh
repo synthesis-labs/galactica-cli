@@ -6,3 +6,6 @@ cargo build --release --target aarch64-apple-darwin
 
 tar cvfz bin/galactica-x86_64-apple-darwin.tar.gz -C target/x86_64-apple-darwin/release galactica
 tar cvfz bin/galactica-aarch64-apple-darwin.tar.gz -C target/aarch64-apple-darwin/release galactica
+
+shasum -a 256 bin/galactica-x86_64-apple-darwin.tar.gz
+shasum -a 256 bin/galactica-aarch64-apple-darwin.tar.gz

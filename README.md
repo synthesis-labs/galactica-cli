@@ -6,6 +6,14 @@ Your swiss army knife
 
 [![asciicast](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6.svg)](https://asciinema.org/a/KumzgCUpylL4ipEPIdMN4jaU6)
 
+## Install
+
+On OSX you can install via homebrew:
+```
+$ brew tap synthesis-labs/galactica
+$ brew install galactica
+```
+
 ### Code review a single file
 ```sh
 $ cat src/main.rs | galactica code 'review the quality of this code - output 
