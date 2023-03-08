@@ -2,8 +2,12 @@
 name = "galactica"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+vergen = { version = "8.0.0-beta.0", features = ["build", "cargo", "git", "gitcl"] }
 
 [dependencies]
 galactica-lib = { git = "https://github.com/synthesis-labs/galactica-lib" }
@@ -15,8 +19,8 @@ reqwest = { version = "0.11.14", features = ["json"] }
 tokio = "1.25.0"
 askama = "0.11.1"
 regex = "1.7.1"
-
 colored = "2.0.0"
 rocket = "0.5.0-rc.2"
 open = "3.2.0"
 atty = "0.2.14"
+octocrab = "0.18.1"

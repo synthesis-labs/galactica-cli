@@ -4,7 +4,7 @@ use std::io::{self, Read};
 
 use clap::{Arg, Command};
 use colored::Colorize;
-use galactica::{self, config, discord_login, galactica_api};
+use galactica::{self, config, discord_login, galactica_api, updates};
 use galactica::{config::Config, errors::ClientError};
 use galactica_lib::specs::{Agent, HistoryEntry, Instruction};
 use tokio::runtime::Builder;
@@ -35,6 +35,8 @@ fn cli() -> Command {
         )
         .subcommand(Command::new("history").about("Show history"))
         .subcommand(Command::new("reset").about("Reset history"))
+        .subcommand(Command::new("update").about("Update the tool"))
+        .subcommand(Command::new("version").about("Get the version"))
 }
 
 async fn invoke() -> Result<(), ClientError> {
@@ -68,6 +70,12 @@ async fn invoke() -> Result<(), ClientError> {
                     Agent::Galactica => println!("{}", entry.content.green()),
                 }
             }
+        }
+        Some(("update", _submatches)) => {
+            updates::update().await;
+        }
+        Some(("version", _submatches)) => {
+            updates::version();
         }
         Some(("chat", submatches)) => {
             let config = config::read()?;
@@ -168,7 +176,7 @@ async fn invoke() -> Result<(), ClientError> {
 
             config::write(&mut_config)?;
 
-            println!("{}", reply.bright_green());
+            //println!("{}", reply.bright_green());
         }
         Some((cmd, _submatches)) => {
             println!("Not sure how to process cmd {}", cmd);
