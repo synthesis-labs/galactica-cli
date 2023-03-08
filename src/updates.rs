@@ -1,6 +1,17 @@
 const OWNER: &str = "synthesis-labs";
 const REPO: &str = "galactica-cli";
 
+pub fn get_current_version() -> String {
+    // galactica-x86_64-apple-darwin-0.1.0-build.16.a52800d
+    format!(
+        "galactica-{}-{}-build.{}.{}",
+        env!("VERGEN_CARGO_TARGET_TRIPLE"),
+        env!("CARGO_PKG_VERSION"),
+        env!("VERGEN_GIT_COMMIT_COUNT"),
+        env!("VERGEN_GIT_DESCRIBE")
+    )
+}
+
 pub fn version() -> () {
     println!(
         "Version: {}, Count: {}, Branch: {}, Author: {} ({})",
@@ -10,7 +21,11 @@ pub fn version() -> () {
         env!("VERGEN_GIT_COMMIT_AUTHOR_NAME"),
         env!("VERGEN_GIT_COMMIT_AUTHOR_EMAIL"),
     );
-    println!("Build Timestamp: {}", env!("VERGEN_BUILD_TIMESTAMP"));
+    println!(
+        "Build: {}, Arch: {}",
+        env!("VERGEN_BUILD_TIMESTAMP"),
+        env!("VERGEN_CARGO_TARGET_TRIPLE")
+    );
     println!("Cargo Pkg Version: {}", env!("CARGO_PKG_VERSION"));
 }
 

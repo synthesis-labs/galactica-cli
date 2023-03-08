@@ -75,7 +75,7 @@ async fn invoke() -> Result<(), ClientError> {
             updates::update().await;
         }
         Some(("version", _submatches)) => {
-            updates::version();
+            println!("{}", updates::get_current_version());
         }
         Some(("chat", submatches)) => {
             let config = config::read()?;
