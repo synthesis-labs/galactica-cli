@@ -11,7 +11,7 @@ pub fn version() -> () {
         env!("VERGEN_GIT_COMMIT_AUTHOR_EMAIL"),
     );
     println!("Build Timestamp: {}", env!("VERGEN_BUILD_TIMESTAMP"));
-    println!("Build Timestamp: {}", env!("CARGO_PKG_VERSION"));
+    println!("Cargo Pkg Version: {}", env!("CARGO_PKG_VERSION"));
 }
 
 pub async fn update() -> () {
