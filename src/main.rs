@@ -28,6 +28,11 @@ fn cli() -> Command {
                 .about("Generate code based on requirements (no history)")
                 .arg(Arg::new("prompt").num_args(1..)),
         )
+        .subcommand(
+            Command::new("stream")
+                .about("Open ended chat including history and context")
+                .arg(Arg::new("prompt").num_args(1..)),
+        )
         .subcommand(Command::new("history").about("Show history"))
         .subcommand(Command::new("reset").about("Reset history"))
 }
@@ -126,6 +131,44 @@ async fn invoke() -> Result<(), ClientError> {
             for reply in replies.iter() {
                 println!("{}", reply.green());
             }
+        }
+        Some(("stream", submatches)) => {
+            let config = config::read()?;
+
+            if config.token.is_none() {
+                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
+            }
+
+            let prompt = get_prompt(submatches)?;
+
+            // Do we have data passed to us via stdin?
+            //
+            let specific = match get_stdin() {
+                Some(stdin) => Instruction::ConversationWithReference(prompt.clone(), stdin),
+                None => Instruction::Conversation(prompt.clone()),
+            };
+
+            let reply =
+                galactica_api::instruction_stream(&config, specific, 1, config.history.clone())
+                    .await?;
+
+            // Update history
+            //
+            let mut mut_config = config::read()?;
+
+            mut_config.history.push(HistoryEntry {
+                agent: Agent::User,
+                content: prompt,
+            });
+
+            mut_config.history.push(HistoryEntry {
+                agent: Agent::Galactica,
+                content: reply.clone(),
+            });
+
+            config::write(&mut_config)?;
+
+            println!("{}", reply.bright_green());
         }
         Some((cmd, _submatches)) => {
             println!("Not sure how to process cmd {}", cmd);
