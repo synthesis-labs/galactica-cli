@@ -2,11 +2,12 @@ use std::io::{self, Write};
 
 use colored::Colorize;
 use galactica_lib::auth::{DiscordAccessToken, GetTokenRequest, GetTokenResponse};
+use galactica_lib::parser;
 use galactica_lib::specs::{
     ErrorResponse, HistoryEntry, Instruction, InstructionChunk, InstructionRequest,
     InstructionResponse,
 };
-use galactica_lib::stream_data_parser::{self, stream_data_parser};
+use galactica_lib::stream_data_parser::stream_data_parser;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -143,7 +144,7 @@ pub async fn instruction_stream(
         buffer.push_str(chunk_str);
 
         // Run the stream data parser to grab out complete packets
-        if let Ok((consumed, packets)) = stream_data_parser::parse(stream_data_parser(), &buffer) {
+        if let Ok((consumed, packets)) = parser::parse(stream_data_parser(), &buffer) {
             // println!("Consumed: {}, Packets: {:?}", consumed, packets);
 
             // Drop this many consumed chars from buffer

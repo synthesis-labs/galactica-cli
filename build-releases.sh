@@ -1,7 +1,7 @@
 # cargo clean
 PACKAGE_VERSION=$(cargo metadata --format-version=1 | jq --raw-output '.packages | [.[] | select(.name=="galactica") ] | .[0].version')
 GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)
-VER=$PACKAGE_VERSION-$GIT_VERSION
+VER=$PACKAGE_VERSION+$GIT_VERSION
 echo Version is $VER
 
 if [[ $(git diff --stat) != '' ]]; then
