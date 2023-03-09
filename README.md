@@ -14,7 +14,7 @@ $ brew tap synthesis-labs/galactica
 $ brew install galactica
 ```
 
-For Windows use our Powershell install script on our [release](https://github.com/synthesis-labs/galactica-cli/releases) page.
+For Windows use our Powershell install script
 
 1. Run Powershell as administrator
 2. You might need to bypass the default restriction to run scripts
