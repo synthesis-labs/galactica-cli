@@ -21,8 +21,8 @@ For Windows use our Powershell install script on our [release](https://github.co
 # You might need to bypass the default restriction to run scripts
 $ PowerShell -ExecutionPolicy Bypass
 
-# Run script to download galactica.exe into your user/.galactica folder and add it to path</li>
-$ ./windows-install.ps1
+# Run script to download galactica.exe into your user/.galactica folder and add it to path
+$ Invoke-Expression $((Invoke-WebRequest https://raw.githubusercontent.com/synthesis-labs/galactica-cli/main/windows-install.ps1 -UseBasicParsing).Content)
 
 # Start a new Powershell window
 $ galactica.exe login
