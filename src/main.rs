@@ -33,6 +33,11 @@ fn cli() -> Command {
                 .about("Open ended chat including history and context")
                 .arg(Arg::new("prompt").num_args(1..)),
         )
+        .subcommand(
+            Command::new("do")
+                .about("Execute real actions")
+                .arg(Arg::new("prompt").num_args(1..)),
+        )
         .subcommand(Command::new("history").about("Show history"))
         .subcommand(Command::new("reset").about("Reset history"))
         .subcommand(Command::new("update").about("Update the tool"))
@@ -175,6 +180,25 @@ async fn invoke() -> Result<(), ClientError> {
             });
 
             config::write(&mut_config)?;
+
+            //println!("{}", reply.bright_green());
+        }
+        Some(("do", submatches)) => {
+            let config = config::read()?;
+
+            if config.token.is_none() {
+                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
+            }
+
+            let prompt = get_prompt(submatches)?;
+
+            // Do we have data passed to us via stdin?
+            //
+            let specific = Instruction::Do(prompt.clone());
+
+            let _reply =
+                galactica_api::instruction_stream(&config, specific, 1, config.history.clone())
+                    .await?;
 
             //println!("{}", reply.bright_green());
         }
