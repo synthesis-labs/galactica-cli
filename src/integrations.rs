@@ -99,20 +99,29 @@ fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
 }
 
 fn create_pre_commit_hook() -> Result<(), ClientError> {
+    
+    let tmp_file_creator = r#"#!/bin/bash
+    if [ -n "$GIT_EDITOR" ]; then
+    exit 0
+    fi
+    TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
+    git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
+    "#.to_string();
+    let var_string =  r#"${EDITOR:-$(git config --get core.editor || echo 'notepad')} "$TMPFILE""#;
+    let commit_string = r#"COMMIT_MSG=$(cat "$TMPFILE")
+    rm "$TMPFILE"
+    echo "$COMMIT_MSG" | git commit -F -"#;
+    
+    let combined_str = format!("{}\n{}\n{}",tmp_file_creator, var_string, commit_string);
+
     create_hook(
         PRE_COMMIT_HOOK_FILEPATH,
-        r#"#!/bin/bash
-        if [ -n "$GIT_EDITOR" ]; then
-        exit 0
-        fi
-        TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
-        git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
-        ${EDITOR:-$(git config --get core.editor || echo 'notepad')} "$TMPFILE"
-        COMMIT_MSG=$(cat "$TMPFILE")
-        rm "$TMPFILE"
-        echo "$COMMIT_MSG" | git commit -F -"#,
+        &combined_str
+     ,
     )
 }
+
+
 
 fn create_prepare_commit_hook() -> Result<(), ClientError> {
     // Windows script
