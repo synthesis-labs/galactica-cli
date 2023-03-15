@@ -1,16 +1,13 @@
 use clap::ArgMatches;
 use reqwest::Client;
-use std::fs::OpenOptions;
 use std::io::Write;
-// use std::os::unix::fs::OpenOptionsExt;
-
 use std::path::Path;
 use std::process::Command as com;
-
 use crate::errors::ClientError;
+use std::fs::OpenOptions;
 
 const PRE_COMMIT_HOOK_FILEPATH: &str = ".git/hooks/pre-commit";
-const PREPARE_COMMIT_MSG_HOOK_FILEPATH: &str = ".git/hooks/prepare-commit-msg";
+// const PREPARE_COMMIT_MSG_HOOK_FILEPATH: &str = ".git/hooks/prepare-commit-msg";
 
 pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
     if let Some(matches) = submatches.subcommand() {
@@ -25,7 +22,7 @@ pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
                         }
                         ("uninstall", _) => {
                             delete_pre_commit_hook()?;
-                            delete_prepare_commit_hook()?;
+                            // delete_prepare_commit_hook()?;
                         }
                         _ => {}
                     }
@@ -48,7 +45,7 @@ fn delete_prepare_commit_hook() -> Result<(), ClientError> {
     Err(ClientError::NotImplemented)
 }
 
-fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
+fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError> {
     let hook_file_path = Path::new(filepath);
 
     // Check if the pre-commit file already exists
@@ -62,26 +59,29 @@ fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
     // Create the pre-commit file
     //
     let mut hook_file = match OpenOptions::new()
-        .write(true)
-        .create(true)
-        //.mode(0o744)
-        .open(&hook_file_path)
-    {
-        Ok(file) => file,
-        Err(e) => {
-            return Err(ClientError::IntegrationError(format!(
-                "Failed to create pre-commit hook script: {}",
-                e
-            )))
-        }
-    };
+            .write(true)
+            .create(true)
+            .open(&hook_file_path)
+        {
+            Ok(file) => file,
+            Err(e) => {
+                return Err(ClientError::IntegrationError(format!(
+                    "Failed to create pre-commit hook script: {}",
+                    e
+                )))
+            }
+        };
 
     // Write the script to the pre-commit file
     if let Err(_e) = writeln!(hook_file, "{}", script)
     // Make the pre-commit file executable
     {
-        // On Windows, the only way to make a file executable is to set the "executable" attribute using `attrib`
-        let output = com::new("attrib")
+        let mut os_com = "chmod";
+        if os == "windows" {
+           os_com = "attrib";
+        }
+
+        let output = com::new(os_com)
             .arg("+x")
             .arg(hook_file_path.to_str().unwrap())
             .output()
@@ -125,49 +125,50 @@ echo "$COMMIT_MSG" | git commit -F -"#.to_string();
     create_hook(
         PRE_COMMIT_HOOK_FILEPATH,
         &script,
+        os,
     )
 }
 
 
 
-fn create_prepare_commit_hook() -> Result<(), ClientError> {
-    // Windows script
-    //
-    if cfg!(target_os = "windows") {
-        create_hook(
-            PREPARE_COMMIT_MSG_HOOK_FILEPATH,
-            r#"#!/bin/bash
+// fn create_prepare_commit_hook() -> Result<(), ClientError> {
+//     // Windows script
+//     //
+//     if cfg!(target_os = "windows") {
+//         create_hook(
+//             PREPARE_COMMIT_MSG_HOOK_FILEPATH,
+//             r#"#!/bin/bash
     
-        COMMIT_MSG_FILE=$1
-        COMMIT_SOURCE=$2
-        SHA1=$3
+//         COMMIT_MSG_FILE=$1
+//         COMMIT_SOURCE=$2
+//         SHA1=$3
         
-        echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
-        if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
-            # Get the editor configured in Git or use the system default
-            EDITOR=$(git config --get core.editor || echo 'notepad')
-            # Open the commit message file in the editor
-            "$EDITOR" "$COMMIT_MSG_FILE"
-        fi"#,
-        )
-    } 
-    else{
+//         echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
+//         if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
+//             # Get the editor configured in Git or use the system default
+//             EDITOR=$(git config --get core.editor || echo 'notepad')
+//             # Open the commit message file in the editor
+//             "$EDITOR" "$COMMIT_MSG_FILE"
+//         fi"#,
+//         )
+//     } 
+//     else{
   
-        create_hook(
-            PREPARE_COMMIT_MSG_HOOK_FILEPATH,
-            r#"#!/bin/bash
+//         create_hook(
+//             PREPARE_COMMIT_MSG_HOOK_FILEPATH,
+//             r#"#!/bin/bash
     
-        COMMIT_MSG_FILE=$1
-        COMMIT_SOURCE=$2
-        SHA1=$3
+//         COMMIT_MSG_FILE=$1
+//         COMMIT_SOURCE=$2
+//         SHA1=$3
         
-        echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
-        if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
-            # Get the editor configured in Git or use the system default
-            EDITOR=$(git config --get core.editor || echo 'vi')
-            # Open the commit message file in the editor
-            "$EDITOR" "$COMMIT_MSG_FILE"
-        fi"#,
-        )
-    }
-}
+//         echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
+//         if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
+//             # Get the editor configured in Git or use the system default
+//             EDITOR=$(git config --get core.editor || echo 'vi')
+//             # Open the commit message file in the editor
+//             "$EDITOR" "$COMMIT_MSG_FILE"
+//         fi"#,
+//         )
+//     }
+// }
