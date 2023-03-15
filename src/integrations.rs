@@ -2,7 +2,7 @@ use clap::ArgMatches;
 use reqwest::Client;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::os::unix::fs::OpenOptionsExt;
+// use std::os::unix::fs::OpenOptionsExt;
 
 use std::path::Path;
 use std::process::Command as com;
@@ -21,7 +21,7 @@ pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
                     match matches {
                         ("install", _) => {
                             create_pre_commit_hook()?;
-                            create_prepare_commit_hook()?;
+                           // create_prepare_commit_hook()?;
                         }
                         ("uninstall", _) => {
                             delete_pre_commit_hook()?;
@@ -64,7 +64,7 @@ fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
     let mut hook_file = match OpenOptions::new()
         .write(true)
         .create(true)
-        .mode(0o744)
+        //.mode(0o744)
         .open(&hook_file_path)
     {
         Ok(file) => file,
@@ -102,14 +102,15 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
     create_hook(
         PRE_COMMIT_HOOK_FILEPATH,
         r#"#!/bin/bash
-
-    if [ -n "$GIT_EDITOR" ]; then
-    exit 0
-    fi
-    echo 'Running Galactica pre-commit-hook...'
-    COMMIT_MSG=$(git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.')
-    
-    echo "$COMMIT_MSG" | git commit -F -"#,
+        if [ -n "$GIT_EDITOR" ]; then
+        exit 0
+        fi
+        TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
+        git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
+        ${EDITOR:-notepad.exe} "$TMPFILE"
+        COMMIT_MSG=$(cat "$TMPFILE")
+        rm "$TMPFILE"
+        echo "$COMMIT_MSG" | git commit -F -"#,
     )
 }
 
@@ -133,7 +134,9 @@ fn create_prepare_commit_hook() -> Result<(), ClientError> {
             "$EDITOR" "$COMMIT_MSG_FILE"
         fi"#,
         )
-    } else {
+    } 
+    else{
+  
         create_hook(
             PREPARE_COMMIT_MSG_HOOK_FILEPATH,
             r#"#!/bin/bash
