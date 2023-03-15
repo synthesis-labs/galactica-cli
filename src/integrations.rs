@@ -4,6 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command as com;
 use crate::errors::ClientError;
+use std::fs;
 use std::fs::OpenOptions;
 
 const PRE_COMMIT_HOOK_FILEPATH: &str = ".git/hooks/pre-commit";
@@ -38,7 +39,12 @@ pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
 }
 
 fn delete_pre_commit_hook() -> Result<(), ClientError> {
-    Err(ClientError::NotImplemented)
+    if let Err(_e) = fs::remove_file(PRE_COMMIT_HOOK_FILEPATH){
+        return Err(ClientError::IntegrationError(format!(
+            "Failed to delete pre-commit hook. Maybe you don't have one?"
+        )));
+    }
+    Ok(())
 }
 
 fn delete_prepare_commit_hook() -> Result<(), ClientError> {
@@ -113,7 +119,7 @@ if [ -n "$GIT_EDITOR" ]; then
 exit 0
 fi
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
-git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
+git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
 ${EDITOR:-$(git config --get core.editor || echo '"#.to_string();
     let commit_string = r#"')} "$TMPFILE"
 COMMIT_MSG=$(cat "$TMPFILE")
