@@ -66,6 +66,12 @@ pub async fn update() -> () {
                 "{}",
                 "https://github.com/synthesis-labs/galactica-cli/releases".blue()
             );
+            println!("\n");
+            println!(
+                "{}",
+                "If you're on mac and installed via homebrew you can simply:".blue()
+            );
+            println!("{}", "$ brew upgrade galactica".blue());
             println!("{}", "------------------------------------------".yellow());
         } else {
             println!(

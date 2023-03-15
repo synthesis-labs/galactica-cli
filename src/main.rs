@@ -24,18 +24,18 @@ fn cli() -> Command {
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(
+            Command::new("stream")
+                .about("Same as 'chat', but stream the results back")
+                .arg(Arg::new("prompt").num_args(1..)),
+        )
+        .subcommand(
             Command::new("code")
                 .about("Generate code based on requirements (no history)")
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(
-            Command::new("stream")
-                .about("Open ended chat including history and context")
-                .arg(Arg::new("prompt").num_args(1..)),
-        )
-        .subcommand(
             Command::new("do")
-                .about("Execute real actions")
+                .about("EXPERIMENTAL: Work in progress. Give Galactica control!")
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(Command::new("history").about("Show history"))
