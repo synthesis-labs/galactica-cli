@@ -114,6 +114,8 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
 }
 
 fn create_prepare_commit_hook() -> Result<(), ClientError> {
+    // Windows script
+    //
     if cfg!(target_os = "windows") {
         create_hook(
             PREPARE_COMMIT_MSG_HOOK_FILEPATH,
