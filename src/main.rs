@@ -1,15 +1,15 @@
 extern crate rocket;
 
-use std::io::{self, Read};
-use std::process::Command as com;
-use std::fs:: OpenOptions;
-use std::io::Write;
-use std::path::Path;
 use clap::{Arg, Command};
 use colored::Colorize;
-use galactica::{self, config, discord_login, galactica_api, updates};
+use galactica::{self, config, discord_login, galactica_api, integrations, updates};
 use galactica::{config::Config, errors::ClientError};
 use galactica_lib::specs::{Agent, HistoryEntry, Instruction};
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::io::{self, Read};
+use std::path::Path;
+use std::process::Command as com;
 use tokio::runtime::Builder;
 
 #[cfg(windows)]
@@ -42,9 +42,28 @@ fn cli() -> Command {
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(Command::new("history").about("Show history"))
+        /*
+        galactica history
+                            view
+                            reset
+        galactica chat --stream 'hello how are you'
+        # git related stuff
+        galactica integration git commit_hook install
+                                              remove
+        galactica integration git review_changes
+         */
         .subcommand(Command::new("reset").about("Reset history"))
+        .subcommand(
+            Command::new("integration")
+                .about("Manage integrations, e.g. git and others")
+                .subcommand(
+                    Command::new("git_commit_hook")
+                        .about("Git stuff")
+                        .subcommand(Command::new("install"))
+                        .subcommand(Command::new("uninstall")),
+                ),
+        )
         .subcommand(Command::new("update").about("Update the tool"))
-        .subcommand(Command::new("git_integration").about("Add integration with git"))
         .subcommand(Command::new("version").about("Get the version"))
 }
 
@@ -203,12 +222,9 @@ async fn invoke() -> Result<(), ClientError> {
             let _reply =
                 galactica_api::instruction_stream(&config, specific, 1, config.history.clone())
                     .await?;
-
-            //println!("{}", reply.bright_green());
-        Some(("git_integration", _submatches)) => {
-
-            create_pre_commit_hook();
-            create_prepare_commit_hook();
+        }
+        Some(("integration", submatches)) => {
+            integrations::cli_integrations(submatches)?;
         }
         Some((cmd, _submatches)) => {
             println!("Not sure how to process cmd {}", cmd);
@@ -219,105 +235,6 @@ async fn invoke() -> Result<(), ClientError> {
     Ok(())
 }
 
-fn create_pre_commit_hook(){
-    let file_string = r#"#!/bin/bash
-
-    if [ -n "$GIT_EDITOR" ]; then
-    exit 0
-    fi
-    COMMIT_MSG=$(git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.')
-    
-    echo "$COMMIT_MSG" | git commit -F -"#;
-
-            let pre_commit_file_path = Path::new(".git/hooks/pre-commit");
-
-            // Check if the pre-commit file already exists
-            if pre_commit_file_path.exists() {
-                panic!("A pre-commit hook script already exists.");
-            }   //dkhsbvk
-        
-            // Create the pre-commit file
-            let mut pre_commit_file = match OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(&pre_commit_file_path)
-            {
-                Ok(file) => file,
-                Err(e) => panic!("Failed to create pre-commit hook script: {}", e),
-            };
-        
-            // Write the script to the pre-commit file
-            if let Err(_e) = writeln!(
-                pre_commit_file,
-                "{}",file_string,
-            )
-        
-            // Make the pre-commit file executable
-            {
-                // On Windows, the only way to make a file executable is to set the "executable" attribute using `attrib`
-                let output = com::new("attrib")
-                    .arg("+x")
-                    .arg(pre_commit_file_path.to_str().unwrap())
-                    .output()
-                    .unwrap();
-                if !output.status.success() {
-                    panic!("Failed to make pre-commit hook script executable: {:?}", output);
-                }
-            }
-            println!("Pre-commit hook script created.");
-}
-fn create_prepare_commit_hook(){
-    let file_string = r#"#!/bin/bash
-
-    COMMIT_MSG_FILE=$1
-    COMMIT_SOURCE=$2
-    SHA1=$3
-    
-    if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
-        # Get the editor configured in Git or use the system default
-        EDITOR=$(git config --get core.editor || echo 'notepad')
-        # Open the commit message file in the editor
-        "$EDITOR" "$COMMIT_MSG_FILE"
-    fi"#;
-
-            let prepare_commit_file_path = Path::new(".git/hooks/prepare-commit-msg");
-
-            // Check if the pre-commit file already exists
-            if prepare_commit_file_path.exists() {
-                panic!("A pre-commit hook script already exists.");
-            }   //dkhsbvk
-        
-            // Create the pre-commit file
-            let mut prepare_commit_file = match OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(&prepare_commit_file_path)
-            {
-                Ok(file) => file,
-                Err(e) => panic!("Failed to create prepare-commit hook script: {}", e),
-            };
-        
-            // Write the script to the pre-commit file
-            if let Err(_e) = writeln!(
-                prepare_commit_file,
-                "{}",file_string,
-            )
-        
-            // Make the pre-commit file executable
-            {
-                // On Windows, the only way to make a file executable is to set the "executable" attribute using `attrib`
-                let output = com::new("attrib")
-                    .arg("+x")
-                    .arg(prepare_commit_file_path.to_str().unwrap())
-                    .output()
-                    .unwrap();
-                if !output.status.success() {
-                    panic!("Failed to make prepare-commit hook script executable: {:?}", output);
-                }
-            }
-            println!("Prepare-commit hook script created.");
-    
-}
 // A handy little fn to get the arguments as a single long string ("prompt")
 //
 fn get_prompt(submatches: &clap::ArgMatches) -> Result<String, ClientError> {

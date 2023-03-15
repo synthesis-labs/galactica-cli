@@ -14,6 +14,7 @@ pub enum ClientError {
     UnableToLaunchWebServer(String),
     StdinError(String),
     NotLoggedIn(String),
+    IntegrationError(String),
     NotImplemented,
 }
 
@@ -49,6 +50,9 @@ impl Display for ClientError {
             }
             Self::NotLoggedIn(msg) => {
                 writeln!(f, "NotLoggedIn: {}", msg)
+            }
+            Self::IntegrationError(msg) => {
+                writeln!(f, "IntegrationError: {}", msg)
             }
             Self::NotImplemented => write!(f, "NotImplemented"),
         }
