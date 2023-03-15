@@ -107,7 +107,7 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
         fi
         TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
         git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
-        ${EDITOR:-notepad.exe} "$TMPFILE"
+        ${EDITOR:git config --get core.editor || echo 'notepad'} "$TMPFILE"
         COMMIT_MSG=$(cat "$TMPFILE")
         rm "$TMPFILE"
         echo "$COMMIT_MSG" | git commit -F -"#,
