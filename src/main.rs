@@ -202,7 +202,7 @@ fn create_pre_commit_hook(){
     if [ -n "$GIT_EDITOR" ]; then
     exit 0
     fi
-    COMMIT_MSG=$(git diff --staged | ./target/debug/galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.')
+    COMMIT_MSG=$(git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.')
     
     echo "$COMMIT_MSG" | git commit -F -"#;
 
