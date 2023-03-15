@@ -114,20 +114,39 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
 }
 
 fn create_prepare_commit_hook() -> Result<(), ClientError> {
-    create_hook(
-        PREPARE_COMMIT_MSG_HOOK_FILEPATH,
-        r#"#!/bin/bash
-
-    COMMIT_MSG_FILE=$1
-    COMMIT_SOURCE=$2
-    SHA1=$3
+    if cfg!(target_os = "windows") {
+        create_hook(
+            PREPARE_COMMIT_MSG_HOOK_FILEPATH,
+            r#"#!/bin/bash
     
-    echo 'Running Galactica prepare-commit-hook...'
-    if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
-        # Get the editor configured in Git or use the system default
-        EDITOR=$(git config --get core.editor || echo 'notepad')
-        # Open the commit message file in the editor
-        "$EDITOR" "$COMMIT_MSG_FILE"
-    fi"#,
-    )
+        COMMIT_MSG_FILE=$1
+        COMMIT_SOURCE=$2
+        SHA1=$3
+        
+        echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
+        if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
+            # Get the editor configured in Git or use the system default
+            EDITOR=$(git config --get core.editor || echo 'notepad')
+            # Open the commit message file in the editor
+            "$EDITOR" "$COMMIT_MSG_FILE"
+        fi"#,
+        )
+    } else {
+        create_hook(
+            PREPARE_COMMIT_MSG_HOOK_FILEPATH,
+            r#"#!/bin/bash
+    
+        COMMIT_MSG_FILE=$1
+        COMMIT_SOURCE=$2
+        SHA1=$3
+        
+        echo Running Galactica prepare-commit-hook on $COMMIT_MSG_FILE...
+        if [ -f "$COMMIT_MSG_FILE" ] && [ "$COMMIT_SOURCE" = "message" ]; then
+            # Get the editor configured in Git or use the system default
+            EDITOR=$(git config --get core.editor || echo 'vi')
+            # Open the commit message file in the editor
+            "$EDITOR" "$COMMIT_MSG_FILE"
+        fi"#,
+        )
+    }
 }
