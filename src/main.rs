@@ -5,11 +5,7 @@ use colored::Colorize;
 use galactica::{self, config, discord_login, galactica_api, integrations, updates};
 use galactica::{config::Config, errors::ClientError};
 use galactica_lib::specs::{Agent, HistoryEntry, Instruction};
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::io::{self, Read};
-use std::path::Path;
-use std::process::Command as com;
 use tokio::runtime::Builder;
 
 #[cfg(windows)]
