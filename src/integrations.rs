@@ -44,6 +44,7 @@ fn delete_pre_commit_hook() -> Result<(), ClientError> {
             "Failed to delete pre-commit hook. Maybe you don't have one?"
         )));
     }
+    println!("Pre-commit hook deleted successfully");
     Ok(())
 }
 
@@ -79,14 +80,17 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
         };
 
     // Write the script to the pre-commit file
-    if let Err(_e) = writeln!(hook_file, "{}", script)
+    if let Err(_e) = writeln!(hook_file, "{}", script){
+        return Err(ClientError::IntegrationError(format!(
+            "Failed to make write pre-commit hook script executable"
+        )));
+
+    }
     // Make the pre-commit file executable
-    {
         let mut os_com = "chmod";
         if os == "windows" {
            os_com = "attrib";
         }
-
         let output = com::new(os_com)
             .arg("+x")
             .arg(hook_file_path.to_str().unwrap())
@@ -98,7 +102,6 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
                 output
             )));
         }
-    }
     println!("Created {}", filepath);
 
     Ok(())
