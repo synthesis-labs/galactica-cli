@@ -121,6 +121,7 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
 if [ -n "$GIT_EDITOR" ]; then
 exit 0
 fi
+echo "Galactica is writing your commit!"
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
 git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
 ${EDITOR:-$(git config --get core.editor || echo '"#.to_string();
