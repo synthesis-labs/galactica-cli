@@ -3,9 +3,12 @@ if [ -n "$GIT_EDITOR" ]; then
 exit 0
 fi
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
+
+# Test for no staged commits first, and then exit if none
+
 git diff --staged | galactica code 'provide 1 sentence as a summary of the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
-${EDITOR:-$(git config --get core.editor || echo {{ editor }})} "$TMPFILE"
+${EDITOR:-$(git config --get core.editor || echo {{ editor }} )} "$TMPFILE" </dev/tty
 COMMIT_MSG=$(cat "$TMPFILE")
 rm "$TMPFILE"
-echo "$COMMIT_MSG" | git commit -F -"#
+echo "$COMMIT_MSG" | git commit -F -
 

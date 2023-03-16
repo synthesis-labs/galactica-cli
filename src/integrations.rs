@@ -107,7 +107,7 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
 
     let editor = match os {
         "linux" => "vi",
-        "macos" => "open -W -e",
+        "macos" => "vi",
         "windows" => "notepad",
         _ => "vi",
     };
