@@ -3,6 +3,11 @@ if [ -n "$GIT_EDITOR" ]; then
 exit 0
 fi
 
+if git diff --cached --quiet; then
+echo "No changes are staged for commit."
+exit 0
+fi
+
 echo "Galactica is writing your commit!"
 
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
