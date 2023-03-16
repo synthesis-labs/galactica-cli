@@ -103,16 +103,28 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
 }
 
 fn create_pre_commit_hook() -> Result<(), ClientError> {
-    let os = std::env::consts::OS; //this allows the executable to run on any machine as it checks at runtime as opposed to compile time with cfg!(target_os)
+    // This allows the executable to run on any machine as it checks at runtime as opposed to compile time with cfg!(target_os)
+    //
+    #[cfg(target_os = "windows")]
+    let editor = "notepad";
 
-    let editor = match os {
-        "linux" => "vi",
-        "macos" => "vi",
-        "windows" => "notepad",
-        _ => "vi",
-    };
+    #[cfg(target_os = "macos")]
+    let editor = "vi";
+
+    // let editor =
+    //     #[cfg(windows)]
+    //     "windows"
+    //     #[cfg(macos)]
+    //     "vi"
+    //     ;
+    //     match std::env::consts::OS {
+    //         "linux" => "vi",
+    //         "macos" => "vi",
+    //         "windows" => "notepad",
+    //         _ => "vi",
+    //     };
 
     let script = templates::render_git_commit_hook(editor);
 
-    create_hook(PRE_COMMIT_HOOK_FILEPATH, &script, os)
+    create_hook(PRE_COMMIT_HOOK_FILEPATH, &script, std::env::consts::OS)
 }
