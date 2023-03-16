@@ -8,7 +8,6 @@ use std::path::Path;
 use std::process::Command as com;
 
 const PRE_COMMIT_HOOK_FILEPATH: &str = ".git/hooks/pre-commit";
-// const PREPARE_COMMIT_MSG_HOOK_FILEPATH: &str = ".git/hooks/prepare-commit-msg";
 
 pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
     if let Some(matches) = submatches.subcommand() {
@@ -19,11 +18,9 @@ pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
                     match matches {
                         ("install", _) => {
                             create_pre_commit_hook()?;
-                            // create_prepare_commit_hook()?;
                         }
                         ("uninstall", _) => {
                             delete_pre_commit_hook()?;
-                            // delete_prepare_commit_hook()?;
                         }
                         _ => {}
                     }
@@ -103,28 +100,12 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
 }
 
 fn create_pre_commit_hook() -> Result<(), ClientError> {
-    // This allows the executable to run on any machine as it checks at runtime as opposed to compile time with cfg!(target_os)
-    //
+    
     #[cfg(target_os = "windows")]
-    let editor = "notepad";
-
+    let (editor, tty) = ("notepad", "");
     #[cfg(target_os = "macos")]
-    let editor = "vi";
-
-    // let editor =
-    //     #[cfg(windows)]
-    //     "windows"
-    //     #[cfg(macos)]
-    //     "vi"
-    //     ;
-    //     match std::env::consts::OS {
-    //         "linux" => "vi",
-    //         "macos" => "vi",
-    //         "windows" => "notepad",
-    //         _ => "vi",
-    //     };
-
-    let script = templates::render_git_commit_hook(editor);
+    let (editor, tty) = ("vi", "</dev/tty");
+    let script = templates::render_git_commit_hook(editor, &tty);
 
     create_hook(PRE_COMMIT_HOOK_FILEPATH, &script, std::env::consts::OS)
 }
