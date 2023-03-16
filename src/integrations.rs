@@ -82,7 +82,7 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
     // Write the script to the pre-commit file
     if let Err(_e) = writeln!(hook_file, "{}", script){
         return Err(ClientError::IntegrationError(format!(
-            "Failed to make write pre-commit hook script executable"
+            "Failed to write pre-commit hook script"
         )));
 
     }
