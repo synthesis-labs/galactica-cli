@@ -8,7 +8,7 @@ echo "No changes are staged for commit."
 exit 0
 fi
 
-echo "Galactica is writing your commit!"
+echo "Galactica is analysing your diff..."
 
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
 
