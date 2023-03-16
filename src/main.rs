@@ -38,16 +38,6 @@ fn cli() -> Command {
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(Command::new("history").about("Show history"))
-        /*
-        galactica history
-                            view
-                            reset
-        galactica chat --stream 'hello how are you'
-        # git related stuff
-        galactica integration git commit_hook install
-                                              remove
-        galactica integration git review_changes
-         */
         .subcommand(Command::new("reset").about("Reset history"))
         .subcommand(
             Command::new("integration")
