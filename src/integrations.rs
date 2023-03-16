@@ -13,7 +13,6 @@ pub fn cli_integrations(submatches: &ArgMatches) -> Result<(), ClientError> {
     if let Some(matches) = submatches.subcommand() {
         match matches {
             ("git_commit_hook", submatches) => {
-                // Naughty for now, but this should live in it's own place one day
                 if let Some(matches) = submatches.subcommand() {
                     match matches {
                         ("install", _) => {
@@ -45,7 +44,7 @@ fn delete_pre_commit_hook() -> Result<(), ClientError> {
     Ok(())
 }
 
-fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError> {
+fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
     let hook_file_path = Path::new(filepath);
 
     // Check if the pre-commit file already exists
@@ -73,16 +72,18 @@ fn create_hook(filepath: &str, script: &str, os: &str) -> Result<(), ClientError
     };
 
     // Write the script to the pre-commit file
+    //
     if let Err(_e) = writeln!(hook_file, "{}", script) {
         return Err(ClientError::IntegrationError(format!(
             "Failed to write pre-commit hook script"
         )));
     }
     // Make the pre-commit file executable
-    let mut os_com = "chmod";
-    if os == "windows" {
-        os_com = "attrib";
-    }
+    //
+    #[cfg(target_os = "windows")]
+    let os_com = "attrib";
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    let os_com = "chmod";
     let output = com::new(os_com)
         .arg("+x")
         .arg(hook_file_path.to_str().unwrap())
@@ -103,9 +104,9 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
     
     #[cfg(target_os = "windows")]
     let (editor, tty) = ("notepad", "");
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     let (editor, tty) = ("vi", "</dev/tty");
     let script = templates::render_git_commit_hook(editor, &tty);
 
-    create_hook(PRE_COMMIT_HOOK_FILEPATH, &script, std::env::consts::OS)
+    create_hook(PRE_COMMIT_HOOK_FILEPATH, &script)
 }
