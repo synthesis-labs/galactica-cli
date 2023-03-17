@@ -1,0 +1,13 @@
+app-id: org.s7s.labs.galactica
+runtime: org.gnome.Platform
+runtime-version: '3.38'
+sdk: org.gnome.Sdk
+command: galactica
+modules:
+  - name: galactica
+    buildsystem: simple
+    build-commands:
+      - install -D galactica /app/bin/galactica
+    sources:
+      - type: file
+        path: galactica
