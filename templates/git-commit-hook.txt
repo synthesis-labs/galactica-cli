@@ -18,7 +18,7 @@ git diff --staged | galactica code 'provide 1 sentence on the changes made to th
 
 #Check exit status code
 if [ $? -ne 0 ]; then
-    echo "Galactica exited with non-zero status code. Aborting commit."
+    echo "Galactica exited with a non-zero status. You'll have to commit this one with 'git commit -m ..."
     exit 1
 else
 ${EDITOR:-$(git config --get core.editor || echo {{ editor }} )} "$TMPFILE" {{ tty }}
