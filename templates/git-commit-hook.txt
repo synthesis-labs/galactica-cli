@@ -13,7 +13,7 @@ echo "Galactica is analysing your diff..."
 TMPFILE=$(mktemp) || { echo "Failed to create temp file"; exit 1; }
 
 
-git diff --staged | ./target/debug/galactica code 'provide 1 sentence on the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
+git diff --staged | galactica code 'provide 1 sentence on the changes made to this code. Then skip a line and provide a short description of why the major changes were made, using bullet points if necessary.' > "$TMPFILE"
 
 
 #Check exit status code
