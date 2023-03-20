@@ -109,4 +109,3 @@ fn create_pre_commit_hook() -> Result<(), ClientError> {
 
     create_hook(PRE_COMMIT_HOOK_FILEPATH, &script)
 }
-//commenting new things for clarity

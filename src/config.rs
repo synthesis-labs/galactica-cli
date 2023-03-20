@@ -21,7 +21,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             // api_url: "http://127.0.0.1:8000".to_string(),
-            api_url: "https://ikmqanq88j.eu-west-1.awsapprunner.com".to_string(),
+            api_url: "https://ikmqanq88j.eu-west-1.awsapprunner.co".to_string(),
             token: None,
             history: vec![],
         }
