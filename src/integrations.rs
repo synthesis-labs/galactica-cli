@@ -101,7 +101,6 @@ fn create_hook(filepath: &str, script: &str) -> Result<(), ClientError> {
 }
 
 fn create_pre_commit_hook() -> Result<(), ClientError> {
-    
     #[cfg(target_os = "windows")]
     let (editor, tty) = ("notepad", "");
     #[cfg(any(target_os = "macos", target_os = "linux"))]

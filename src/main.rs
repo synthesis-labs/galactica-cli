@@ -38,16 +38,6 @@ fn cli() -> Command {
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(Command::new("history").about("Show history"))
-        /*
-        galactica history
-                            view
-                            reset
-        galactica chat --stream 'hello how are you'
-        # git related stuff
-        galactica integration git commit_hook install
-                                              remove
-        galactica integration git review_changes
-         */
         .subcommand(Command::new("reset").about("Reset history"))
         .subcommand(
             Command::new("integration")
@@ -263,10 +253,13 @@ fn main() {
     let rt = Builder::new_current_thread().enable_all().build().unwrap();
     let r = rt.block_on(invoke());
 
+    // Be a good citizen and return an error code
+    //
     match r {
         Err(err) => {
-            println!("{}", err.to_string().red())
+            eprintln!("{}", err.to_string().red());
+            std::process::exit(-1)
         }
-        Ok(_) => {}
+        Ok(_) => std::process::exit(0),
     }
 }
