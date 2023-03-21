@@ -14,7 +14,13 @@ $ brew tap synthesis-labs/galactica
 $ brew install galactica
 ```
 
-For Windows use our Powershell install script
+On Windows, you can install via Scoop:
+```ps
+$ scoop install https://raw.githubusercontent.com/synthesis-labs/galactica-cli/main/galactica.json
+```
+> Visit https://scoop.sh to configure the scoop command line installer for Windows
+
+Alternatively, use our Powershell install script
 
 1. Run Powershell as administrator
 2. You might need to bypass the default restriction to run scripts

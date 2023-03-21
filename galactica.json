@@ -1,0 +1,22 @@
+{
+    "version": "0.1.0",
+    "description": "AI at your fingertips...",
+    "homepage": "https://galactica.synthesis.rocks/cli.html",
+    "url": "https://github.com/synthesis-labs/galactica-cli/releases/download/beta-rc.1/galactica-x86_64-pc-windows-gnu-0.1.0%2Bbuild.53.ef9a0f8.zip",
+    "hash": "935bfdb6b5f4a86ddfd5a83bef3aba06bb3c94723d6b3efcdc9920d627bfadbc",
+    "extract_to": "galactica-0.1.0",
+    "bin": "galactica.exe",
+    "checkver": {
+      "url": "https://api.github.com/repos/synthesis-labs/galactica-cli/releases?per_page=1",
+      "regex": "(?<download>download\\/(?<tag>.+)\\/galactica-x86_64-pc-windows-gnu-(?<ver>[\\d\\.]+)\\w*.zip)",
+      "replace": "${ver}"
+    },
+    "autoupdate": {
+      "url": "https://github.com/synthesis-labs/galactica-cli/releases/$matchDownload",
+      "hash": {
+        "url": "$url.sha256",
+        "regex": "$sha256"
+      },
+      "extract_to": "galactica-$version"
+    }
+}
