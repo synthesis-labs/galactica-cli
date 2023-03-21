@@ -1,6 +1,6 @@
 # Galactica
 
-Your swiss army knife
+Bring AI into your shell
 
 ## Example usage
 
@@ -20,25 +20,13 @@ $ scoop install https://raw.githubusercontent.com/synthesis-labs/galactica-cli/m
 ```
 > Visit https://scoop.sh to configure the scoop command line installer for Windows
 
-Alternatively, use our Powershell install script
-
-1. Run Powershell as administrator
-2. You might need to bypass the default restriction to run scripts
-```ps
-$ PowerShell -ExecutionPolicy Bypass
+On Linux, you can download a precompiled binary from our release page, or 
+compile it yourself if you have Cargo installed.
+```sh
+$ cargo install --git http://github.com/synthesis-labs/galactica-cli
 ```
 
-3. Run script to download galactica.exe into your user/.galactica folder and add it to path
-```ps
-$ Invoke-Expression $((Invoke-WebRequest https://raw.githubusercontent.com/synthesis-labs/galactica-cli/main/windows-install.ps1 -UseBasicParsing).Content)
-```
-
-4. Start a new Powershell window
-```ps
-$ galactica.exe login
-```
-
-### Code review a single file
+## Code review a single file
 ```sh
 $ cat src/main.rs | galactica code 'review the quality of this code - output 
 only "HIGH" or "LOW" and a one sentence reason why'
