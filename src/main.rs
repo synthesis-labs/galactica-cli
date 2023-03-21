@@ -262,7 +262,7 @@ fn main() {
     //
     match r {
         Err(err) => {
-            eprintln!("{}", err.to_string().red());
+            eprintln!("❌ {}", err.to_string().red());
             std::process::exit(-1)
         }
         Ok(_) => std::process::exit(0),
