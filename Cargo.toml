@@ -10,7 +10,7 @@ build = "build.rs"
 vergen = { version = "8.0.0-beta.0", features = ["build", "cargo", "git", "gitcl"] }
 
 [dependencies]
-galactica-lib = { path = "../galactica-lib" } # { git = "https://github.com/synthesis-labs/galactica-lib" }
+galactica-lib = { git = "https://github.com/synthesis-labs/galactica-lib" }
 serde = {version = "1.0.152", features = ["derive"] }
 serde_json = { version = "1.0.93" }
 clap = "4.1.4"

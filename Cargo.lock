@@ -685,6 +685,7 @@ dependencies = [
 [[package]]
 name = "galactica-lib"
 version = "0.1.1"
+source = "git+https://github.com/synthesis-labs/galactica-lib#65d1b4a09ce7093deee83925ae4af6128e692b15"
 dependencies = [
  "nom",
  "serde",
