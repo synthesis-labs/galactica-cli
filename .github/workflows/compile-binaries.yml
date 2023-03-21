@@ -20,11 +20,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
       - name: Set PACKAGE_VERSION
-        run: echo "PACKAGE_VERSION=$(cargo metadata --format-version=1 | jq --raw-output '.packages | [.[] | select(.name=="galactica") ] | .[0].version')" >> $GITHUB_ENV
+        run: echo "PACKAGE_VERSION=0.1.0" >> $GITHUB_ENV
       - name: Set GIT_VERSION
         run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Set VER
