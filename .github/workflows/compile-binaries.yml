@@ -5,20 +5,18 @@ on:
     branches: [ "main" ]
 
 jobs:
-  linux_arm7:
-    name: Linux ARMv7
+  build:
+    name: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          target: x86_64-unknown-linux-gnu
-          override: true
-      - name: Install cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
-      - name: Cross build
-        run: cross build --target aarch64-unknown-linux-gnu
+          toolchain: nightly
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
       # - uses: actions-rs/cargo@v1
       #   with:
       #     use-cross: true
