@@ -5,7 +5,7 @@ use galactica_lib::auth::{DiscordAccessToken, GetTokenRequest, GetTokenResponse}
 use galactica_lib::parser;
 use galactica_lib::specs::{
     ErrorResponse, HistoryEntry, Instruction, InstructionChunk, InstructionRequest,
-    InstructionResponse,
+    InstructionResponse, UpdateRequest, UpdateResponse,
 };
 use galactica_lib::stream_data_parser::stream_data_parser;
 use serde::de::DeserializeOwned;
@@ -166,4 +166,20 @@ pub async fn instruction_stream(
     }
 
     Ok(result)
+}
+
+pub async fn update(
+    config: &Config,
+    current_version: String,
+) -> Result<Option<String>, ClientError> {
+    let response: UpdateResponse = api_call(
+        config,
+        "/update",
+        &UpdateRequest {
+            token: config.token.clone(),
+            current_version,
+        },
+    )
+    .await?;
+    Ok(response.update_available)
 }

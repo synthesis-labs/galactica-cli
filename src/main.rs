@@ -86,7 +86,12 @@ async fn invoke() -> Result<(), ClientError> {
             }
         }
         Some(("update", _submatches)) => {
-            updates::update().await;
+            let config = config::read()?;
+
+            let current_version = updates::get_current_version();
+
+            let available_version = galactica_api::update(&config, current_version).await?;
+            updates::print_update_banner(available_version);
         }
         Some(("version", _submatches)) => {
             println!("{}", updates::get_current_version());
@@ -262,4 +267,4 @@ fn main() {
         }
         Ok(_) => std::process::exit(0),
     }
-}   
+}
