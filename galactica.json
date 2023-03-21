@@ -14,7 +14,8 @@
     "autoupdate": {
       "url": "https://github.com/synthesis-labs/galactica-cli/releases/$matchDownload",
       "hash": {
-        "url": "$url.sha256"
+        "url": "$url.sha256",
+        "regex": "$sha256"
       },
       "extract_to": "galactica-$version"
     }
