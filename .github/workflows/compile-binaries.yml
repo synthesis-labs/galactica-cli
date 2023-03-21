@@ -52,9 +52,9 @@ jobs:
       - name: Set GIT_VERSION
         run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Set VER
-        run: echo "VER=$PACKAGE_VERSION+$GIT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: echo "VER=${{ env.PACKAGE_VERSION }}+${{ env.GIT_VERSION }}" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Print
-        run: echo PACKAGE_VERSION=$PACKAGE_VERSION GIT_VERSION=$GIT_VERSION VER=$VER
+        run: echo PACKAGE_VERSION=$${{ env.PACKAGE_VERSION }} GIT_VERSION=${{ env.GIT_VERSION }} VER=${{ env.VER }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
