@@ -20,3 +20,9 @@ jobs:
         with:
           command: build
           args: --release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: binary
+          path: |
+            target/release/galactica
+            target/release/galactica.exe
