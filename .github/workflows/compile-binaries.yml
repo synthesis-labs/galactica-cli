@@ -76,6 +76,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: .
+      - name: Display structure of downloaded files
+        run: ls -R          
       - name: calculate hashes
         run: for f in *; do shasum -a 256 $f > $f.sha256; done 
       - name: release
