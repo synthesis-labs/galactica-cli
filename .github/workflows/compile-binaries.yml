@@ -67,3 +67,15 @@ jobs:
           name: galactica-x86_64-pc-windows-msvc-${{ env.VER }}.exe
           path: |
             target/release/galactica.exe
+  upload:
+    name: Upload Release Assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all assets
+        uses: actions/download-artifact@v3
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: *
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
