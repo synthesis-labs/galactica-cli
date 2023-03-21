@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-nixes:
-    name: build linux & mac
+    name: build
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -68,15 +68,17 @@ jobs:
           path: |
             target/release/galactica.exe
   upload:
-    name: Upload Release Assets
+    name: upload to github release
     needs: ["build-nixes", "build-windows"]
     runs-on: ubuntu-latest
     steps:
-      - name: Download all assets
+      - name: download assets
         uses: actions/download-artifact@v3
-      - name: Calculate hashes
+        with:
+          path: .
+      - name: calculate hashes
         run: for f in *; do shasum -a 256 $f > $f.sha256; done 
-      - name: Release
+      - name: release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "0.1.0"
