@@ -31,6 +31,15 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -58,6 +67,15 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -91,8 +109,8 @@ jobs:
         with:
           tag_name: "0.1.0"
           files: |
-            "*.zip"
-            ".sha256"
+            *.zip
+            *.sha256
           draft: false
           prerelease: true
           generate_release_notes: true
