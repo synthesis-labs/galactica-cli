@@ -35,11 +35,11 @@ jobs:
         with:
           command: build
           args: --release
+      - name: zip up
+        run: zip -j galactica-${{ matrix.triple }}-${{ env.VER }}.zip target/release/galactica
       - uses: actions/upload-artifact@v3
         with:
-          name: galactica-${{ matrix.triple }}-${{ env.VER }}
-          path: |
-            target/release/galactica
+          path: galactica-${{ matrix.triple }}-${{ env.VER }}.zip
   build-windows:
     name: build windows
     runs-on: windows-latest
@@ -62,11 +62,15 @@ jobs:
         with:
           command: build
           args: --release
+      - name: zip up
+        run: zip -j galactica-x86_64-pc-windows-msvc-${{ env.VER }}.zip target/release/galactica.exe
       - uses: actions/upload-artifact@v3
         with:
-          name: galactica-x86_64-pc-windows-msvc-${{ env.VER }}.exe
           path: |
-            target/release/galactica.exe
+            galactica-${{ matrix.triple }}-${{ env.VER }}.zip          
+      - uses: actions/upload-artifact@v3
+        with:
+          path: galactica-x86_64-pc-windows-msvc-${{ env.VER }}.zip
   upload:
     name: upload to github release
     needs: ["build-nixes", "build-windows"]
@@ -74,17 +78,19 @@ jobs:
     steps:
       - name: download assets
         uses: actions/download-artifact@v3
-        with:
-          path: .
       - name: Display structure of downloaded files
-        run: ls -R          
+        run: ls -R
+      - name: copy zips
+        run: cp */*.zip .
       - name: calculate hashes
         run: for f in *; do shasum -a 256 $f > $f.sha256; done 
       - name: release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "0.1.0"
-          files: "*"
+          files: |
+            "*.zip"
+            ".sha256"
           draft: false
           prerelease: true
           generate_release_notes: true
