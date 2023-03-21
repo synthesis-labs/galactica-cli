@@ -81,9 +81,11 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
       - name: copy zips
-        run: cp */*.zip .
+        run: cp artifact/*.zip .
+      - name: Display structure of downloaded files
+        run: ls -R
       - name: calculate hashes
-        run: for f in *; do shasum -a 256 $f > $f.sha256; done 
+        run: for f in *.zip; do shasum -a 256 $f > $f.sha256; done 
       - name: release
         uses: softprops/action-gh-release@v1
         with:
