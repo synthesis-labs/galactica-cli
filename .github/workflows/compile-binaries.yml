@@ -19,7 +19,13 @@ jobs:
             triple: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Set PACKAGE_VERSION
+        run: echo "PACKAGE_VERSION=$(cargo metadata --format-version=1 | jq --raw-output '.packages | [.[] | select(.name=="galactica") ] | .[0].version')" >> $GITHUB_ENV
+      - name: Set GIT_VERSION
+        run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Set VER
+        run: echo "VER=$PACKAGE_VERSION+$GIT_VERSION" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -29,7 +35,7 @@ jobs:
           args: --release
       - uses: actions/upload-artifact@v3
         with:
-          name: galactica-${{ matrix.triple }}
+          name: galactica-${{ matrix.triple }}-${{ env.VER }}
           path: |
             target/release/galactica
             target/release/galactica.exe
