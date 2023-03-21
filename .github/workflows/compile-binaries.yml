@@ -69,6 +69,7 @@ jobs:
             target/release/galactica.exe
   upload:
     name: Upload Release Assets
+    needs: ["build-nixes", "build-windows"]
     runs-on: ubuntu-latest
     steps:
       - name: Download all assets
