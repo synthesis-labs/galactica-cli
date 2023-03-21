@@ -63,7 +63,7 @@ jobs:
           command: build
           args: --release
       - name: zip up
-        run: zip -j galactica-x86_64-pc-windows-msvc-${{ env.VER }}.zip target/release/galactica.exe
+        run: Compress-Archive -Path target/release/galactica.exe -DestinationPath galactica-x86_64-pc-windows-msvc-${{ env.VER }}.zip
       - uses: actions/upload-artifact@v3
         with:
           path: |
