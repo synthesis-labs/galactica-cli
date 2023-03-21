@@ -22,7 +22,6 @@ jobs:
           fetch-depth: 0
       - name: Set PACKAGE_VERSION
         run: echo "PACKAGE_VERSION=0.1.0" >> $GITHUB_ENV
-        if: ${{ matrix.os == ""}}
       - name: Set GIT_VERSION
         run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Set VER
