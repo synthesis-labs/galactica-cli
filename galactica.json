@@ -4,11 +4,10 @@
   "homepage": "https://galactica.synthesis.rocks/cli.html",
   "url": "https://github.com/synthesis-labs/galactica-cli/releases/download/0.1.0/galactica-x86_64-pc-windows-msvc-0.1.0+build.93.c770688.zip",
   "hash": "0160af69ac9a362dc325de7f2b9249e6fbad5e6a995fdaccaf2831d1e967f1a1",
-  "extract_to": "galactica-0.1.0",
   "bin": "galactica.exe",
   "checkver": {
     "url": "https://api.github.com/repos/synthesis-labs/galactica-cli/releases?per_page=1",
-    "regex": "(?<download>download\\/(?<tag>.+)\\/galactica-x86_64-pc-windows-gnu-(?<ver>[\\d\\.]+)\\w*.zip)",
+    "regex": "(?<download>download\\/(?<tag>.+)\\/galactica-x86_64-pc-windows-msvc--(?<ver>[\\d\\.]+)\\w*.zip)",
     "replace": "${ver}"
   },
   "autoupdate": {
@@ -16,7 +15,6 @@
     "hash": {
       "url": "$url.sha256",
       "regex": "$sha256"
-    },
-    "extract_to": "galactica-$version"
+    }
   }
 }
