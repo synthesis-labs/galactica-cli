@@ -176,3 +176,28 @@ $ galactica history
 $ galactica reset
 <... your chat history is cleared...>
 ```
+
+## Privacy and "at your own risk"
+
+Galactica-cli makes use of a backend service in order to engineer each of the 
+prompt types (code, chat, do and others that may be added), connect and stream 
+to and from OpenAI's API, plus validate Discord tokens. The backend is hosted 
+on AWS app runner. History of conversations are stored on your local machine 
+(~/.galactica/config.json) which is needed to maintain contextual 
+chats as well as the full url of the backend.
+
+Galactica-cli does not intend to keep any chat/code or responses, but may in the
+future want to implement some form of "telemetry" in order to figure out which
+features & users are using it. The difficulty in implementing a good LLM tool 
+such as this is detecting bad responses, and providing some sort of mechanism 
+for allowing a user to flag bad responses - in order for prompts to be adjusted 
+and reduce their frequency over time. For this scenario Galactica-cli may need 
+some way of receiving consent from the user to allow for this. None of this 
+exists today and when it does a further explanation of how this is handled will 
+be included here. 
+
+As per any SaaS hosted service - don't send anything confidential or secret to 
+this tool (and nor should you to ChatGPT). If you're keen to use Galactica-cli
+for something like this, you are welcome to fork the repo and build your own
+backend, and you can choose to use whatever LLM you prefer. It's pretty easy and 
+I'd be happy to give you a few pointers, just get in touch.
