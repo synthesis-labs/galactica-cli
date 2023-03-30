@@ -11,6 +11,54 @@ use tokio::runtime::Builder;
 #[cfg(windows)]
 use colored::control;
 
+async fn call_instruction(
+    prompt: &String,
+    instruction: &Instruction,
+    stream: bool,
+    add_history: bool,
+) -> Result<String, ClientError> {
+    let config = config::read()?;
+
+    if config.token.is_none() {
+        return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
+    }
+
+    let reply = if stream {
+        galactica_api::instruction_stream(&config, instruction.clone(), 1, config.history.clone())
+            .await?
+    } else {
+        galactica_api::instruction(&config, instruction.clone(), 1, config.history.clone()).await?
+            [0]
+        .clone()
+    };
+
+    // If we're streaming we can assume the output has been written
+    //
+    if !stream {
+        println!("{}", reply.green());
+    }
+
+    // Update history
+    //
+    if add_history {
+        let mut mut_config = config::read()?;
+
+        mut_config.history.push(HistoryEntry {
+            agent: Agent::User,
+            content: prompt.clone(),
+        });
+
+        mut_config.history.push(HistoryEntry {
+            agent: Agent::Galactica,
+            content: reply.clone(),
+        });
+
+        config::write(&mut_config)?;
+    }
+
+    Ok(reply)
+}
+
 fn cli() -> Command {
     Command::new("cli")
         .about("GPT-3.5 at your fingertips!")
@@ -35,6 +83,11 @@ fn cli() -> Command {
         .subcommand(
             Command::new("do")
                 .about("EXPERIMENTAL: Work in progress. Give Galactica control!")
+                .arg(Arg::new("prompt").num_args(1..)),
+        )
+        .subcommand(
+            Command::new("explain")
+                .about("EXPERIMENTAL: Work in progress. Ask for a detailed explanation with reflexion.")
                 .arg(Arg::new("prompt").num_args(1..)),
         )
         .subcommand(Command::new("history").about("Show history"))
@@ -97,12 +150,6 @@ async fn invoke() -> Result<(), ClientError> {
             println!("{}", updates::get_current_version());
         }
         Some(("chat", submatches)) => {
-            let config = config::read()?;
-
-            if config.token.is_none() {
-                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
-            }
-
             let prompt = get_prompt(submatches)?;
 
             // Do we have data passed to us via stdin?
@@ -112,60 +159,21 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Conversation(prompt.clone()),
             };
 
-            let replies =
-                galactica_api::instruction(&config, specific, 1, config.history.clone()).await?;
-
-            // Update history
-            //
-            let mut mut_config = config::read()?;
-
-            mut_config.history.push(HistoryEntry {
-                agent: Agent::User,
-                content: prompt,
-            });
-
-            for reply in replies.iter() {
-                mut_config.history.push(HistoryEntry {
-                    agent: Agent::Galactica,
-                    content: reply.clone(),
-                });
-
-                config::write(&mut_config)?;
-
-                println!("{}", reply.green());
-            }
+            call_instruction(&prompt, &specific, false, true).await?;
         }
         Some(("code", submatches)) => {
-            let config = config::read()?;
-
-            if config.token.is_none() {
-                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
-            }
-
             let prompt = get_prompt(submatches)?;
 
             // Do we have data passed to us via stdin?
             //
             let specific = match get_stdin() {
-                Some(stdin) => Instruction::GenerateCodeWithReference(prompt, stdin),
-                None => Instruction::GenerateCode(prompt),
+                Some(stdin) => Instruction::GenerateCodeWithReference(prompt.clone(), stdin),
+                None => Instruction::GenerateCode(prompt.clone()),
             };
 
-            // No history...
-            //
-            let replies = galactica_api::instruction(&config, specific, 1, vec![]).await?;
-
-            for reply in replies.iter() {
-                println!("{}", reply.green());
-            }
+            call_instruction(&prompt, &specific, false, false).await?;
         }
         Some(("stream", submatches)) => {
-            let config = config::read()?;
-
-            if config.token.is_none() {
-                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
-            }
-
             let prompt = get_prompt(submatches)?;
 
             // Do we have data passed to us via stdin?
@@ -175,44 +183,28 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Conversation(prompt.clone()),
             };
 
-            let reply =
-                galactica_api::instruction_stream(&config, specific, 1, config.history.clone())
-                    .await?;
-
-            // Update history
-            //
-            let mut mut_config = config::read()?;
-
-            mut_config.history.push(HistoryEntry {
-                agent: Agent::User,
-                content: prompt,
-            });
-
-            mut_config.history.push(HistoryEntry {
-                agent: Agent::Galactica,
-                content: reply.clone(),
-            });
-
-            config::write(&mut_config)?;
-
-            //println!("{}", reply.bright_green());
+            call_instruction(&prompt, &specific, true, true).await?;
         }
         Some(("do", submatches)) => {
-            let config = config::read()?;
-
-            if config.token.is_none() {
-                return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
-            }
-
             let prompt = get_prompt(submatches)?;
 
             // Do we have data passed to us via stdin?
             //
             let specific = Instruction::Do(prompt.clone());
 
-            let _reply =
-                galactica_api::instruction_stream(&config, specific, 1, config.history.clone())
-                    .await?;
+            call_instruction(&prompt, &specific, true, true).await?;
+        }
+        Some(("explain", submatches)) => {
+            let prompt = get_prompt(submatches)?;
+
+            // Do we have data passed to us via stdin?
+            //
+            let instruction = match get_stdin() {
+                Some(stdin) => Instruction::ExplainWithReference(prompt.clone(), stdin),
+                None => Instruction::Explain(prompt.clone()),
+            };
+
+            call_instruction(&prompt, &instruction, true, true).await?;
         }
         Some(("integration", submatches)) => {
             integrations::cli_integrations(submatches)?;

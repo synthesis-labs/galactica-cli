@@ -155,6 +155,15 @@ pub async fn instruction_stream(
             //
             for packet in packets {
                 // println!("Packet ==>{:?}<==", packet);
+
+                // Check for error
+                //
+                if let Ok(error_obj) = serde_json::from_str::<ErrorResponse>(&packet) {
+                    return Err(ClientError::GalacticaApiReturnedError(error_obj.error));
+                }
+
+                // Otherwise assume success
+                //
                 let data_obj: InstructionChunk = serde_json::from_str(&packet).unwrap();
                 print!("{}", data_obj.content.green());
                 io::stdout().flush().unwrap();
