@@ -16,7 +16,7 @@ pub fn print_update_banner(available_version: Option<String>) -> () {
         Some(newer) => {
             println!("{}", "------------------------------------------".yellow());
             println!("{}", "A newer version of galactica is available!".yellow());
-            println!("==> {} <== ", newer.yellow());
+            println!("\n==> {} <==\n", newer.yellow());
             println!(
                 "{}",
                 "Please visit our release page and install the latest version:".yellow()
