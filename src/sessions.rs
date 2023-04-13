@@ -44,7 +44,7 @@ pub fn cli_session_cmd() -> Command {
 pub fn cli_session_handle(submatches: &ArgMatches) -> Result<(), ClientError> {
     if let Some(matches) = submatches.subcommand() {
         match matches {
-            ("ls", submatches) => {
+            ("ls", _submatches) => {
                 for session_name in list() {
                     let session = read(&session_name).unwrap();
                     println!(
@@ -165,7 +165,7 @@ pub fn list() -> Vec<String> {
 }
 
 pub fn remove(name: &String) {
-    fs::remove_file(session_file_path(name));
+    fs::remove_file(session_file_path(name)).unwrap()
 }
 
 pub fn exists(name: &String) -> bool {
