@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
 type ConfigFileName = String;
+type SessionFileName = String;
 
 #[derive(Debug)]
 pub enum ClientError {
     ConfigError(ConfigFileName, String),
+    SessionError(SessionFileName, String),
     GalacticaApiError(String),
     GalacticaApiReturnedError(galactica_lib::errors::Error),
     UnableToSerialize(String),
@@ -23,6 +25,9 @@ impl Display for ClientError {
         match self {
             Self::ConfigError(filename, msg) => {
                 writeln!(f, "ConfigError: {} ({})", msg, filename)
+            }
+            Self::SessionError(filename, msg) => {
+                writeln!(f, "SessionError: {} ({})", msg, filename)
             }
             Self::GalacticaApiError(msg) => {
                 writeln!(f, "GalacticaApiError: {}", msg)

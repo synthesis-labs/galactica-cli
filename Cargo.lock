@@ -506,6 +506,7 @@ dependencies = [
  "colored",
  "dirs",
  "galactica-lib",
+ "glob",
  "open",
  "regex",
  "reqwest",

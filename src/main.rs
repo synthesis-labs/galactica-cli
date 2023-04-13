@@ -2,6 +2,7 @@ extern crate rocket;
 
 use clap::{Arg, ArgAction, Command};
 use colored::Colorize;
+use galactica::sessions;
 use galactica::{self, config, discord_login, galactica_api, integrations, updates};
 use galactica::{config::Config, errors::ClientError};
 use galactica_lib::specs::{Agent, HistoryEntry, Instruction};
@@ -16,6 +17,7 @@ async fn call_instruction(
     instruction: &Instruction,
     stream: bool,
     add_history: bool,
+    session_name: &String,
 ) -> Result<String, ClientError> {
     let config = config::read()?;
 
@@ -23,11 +25,12 @@ async fn call_instruction(
         return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
     }
 
+    let session = sessions::read(session_name)?;
     let reply = if stream {
-        galactica_api::instruction_stream(&config, instruction.clone(), 1, config.history.clone())
+        galactica_api::instruction_stream(&config, instruction.clone(), 1, session.history.clone())
             .await?
     } else {
-        galactica_api::instruction(&config, instruction.clone(), 1, config.history.clone()).await?
+        galactica_api::instruction(&config, instruction.clone(), 1, session.history.clone()).await?
             [0]
         .clone()
     };
@@ -38,22 +41,22 @@ async fn call_instruction(
         println!("{}", reply.green());
     }
 
-    // Update history
+    // Update session
     //
     if add_history {
-        let mut mut_config = config::read()?;
+        let mut mut_session = sessions::read(session_name)?;
 
-        mut_config.history.push(HistoryEntry {
+        mut_session.history.push(HistoryEntry {
             agent: Agent::User,
             content: prompt.clone(),
         });
 
-        mut_config.history.push(HistoryEntry {
+        mut_session.history.push(HistoryEntry {
             agent: Agent::Galactica,
             content: reply.clone(),
         });
 
-        config::write(&mut_config)?;
+        sessions::write(session_name, &mut_session)?;
     }
 
     Ok(reply)
@@ -109,11 +112,13 @@ fn cli() -> Command {
                 .arg(&no_history_arg)
                 .arg(&prompt_arg),
         )
-        .subcommand(Command::new("history").about("Show history"))
-        .subcommand(Command::new("reset").about("Reset history"))
+        .subcommand(sessions::cli_session_cmd())
+        .subcommand(Command::new("history").about("Show history (deprecating...)"))
+        .subcommand(Command::new("reset").about("Reset history (deprecating...)"))
         .subcommand(
             Command::new("integration")
                 .about("Manage integrations, e.g. git and others")
+                .arg_required_else_help(true)
                 .subcommand(
                     Command::new("git_commit_hook")
                         .about("Git stuff")
@@ -178,10 +183,11 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Conversation(prompt.clone()),
             };
 
+            let session: &String = submatches.get_one("session").unwrap();
             let no_stream = submatches.get_flag("no-stream");
             let no_history = submatches.get_flag("no-history");
 
-            call_instruction(&prompt, &specific, !no_stream, !no_history).await?;
+            call_instruction(&prompt, &specific, !no_stream, !no_history, &session).await?;
         }
         Some(("code", submatches)) => {
             let prompt = get_prompt(submatches)?;
@@ -193,10 +199,11 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::GenerateCode(prompt.clone()),
             };
 
+            let session: &String = submatches.get_one("session").unwrap();
             let no_stream = submatches.get_flag("no-stream");
             let no_history = submatches.get_flag("no-history");
 
-            call_instruction(&prompt, &specific, !no_stream, !no_history).await?;
+            call_instruction(&prompt, &specific, !no_stream, !no_history, &session).await?;
         }
         Some(("explain", submatches)) => {
             let prompt = get_prompt(submatches)?;
@@ -208,10 +215,14 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Explain(prompt.clone()),
             };
 
+            let session: &String = submatches.get_one("session").unwrap();
             let no_stream = submatches.get_flag("no-stream");
             let no_history = submatches.get_flag("no-history");
 
-            call_instruction(&prompt, &instruction, !no_stream, !no_history).await?;
+            call_instruction(&prompt, &instruction, !no_stream, !no_history, &session).await?;
+        }
+        Some(("session", submatches)) => {
+            sessions::cli_session_handle(submatches)?;
         }
         Some(("integration", submatches)) => {
             integrations::cli_integrations(submatches)?;
