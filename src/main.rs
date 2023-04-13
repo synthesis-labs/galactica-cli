@@ -1,6 +1,6 @@
 extern crate rocket;
 
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use colored::Colorize;
 use galactica::{self, config, discord_login, galactica_api, integrations, updates};
 use galactica::{config::Config, errors::ClientError};
@@ -60,35 +60,54 @@ async fn call_instruction(
 }
 
 fn cli() -> Command {
+    let prompt_arg = Arg::new("prompt").num_args(1..);
+    let session_arg = Arg::new("session")
+        .short('s')
+        .long("session")
+        .help("Continue from named session")
+        .action(ArgAction::Set)
+        .default_value("default");
+    let no_stream_arg = Arg::new("no-stream")
+        .short('b')
+        .long("no-stream")
+        .help("Do not stream results")
+        .action(ArgAction::SetTrue)
+        .required(false);
+    let no_history_arg = Arg::new("no-history")
+        .short('a')
+        .long("no-history")
+        .help("Do not store result in history")
+        .action(ArgAction::SetTrue)
+        .required(false);
+
     Command::new("cli")
-        .about("GPT-3.5 at your fingertips!")
+        .about("AI at your fingertips!")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(Command::new("login").about("Login via Discord"))
         .subcommand(
             Command::new("chat")
                 .about("Open ended chat including history and context")
-                .arg(Arg::new("prompt").num_args(1..)),
-        )
-        .subcommand(
-            Command::new("stream")
-                .about("Same as 'chat', but stream the results back")
-                .arg(Arg::new("prompt").num_args(1..)),
+                .arg(&session_arg)
+                .arg(&no_stream_arg)
+                .arg(&no_history_arg)
+                .arg(&prompt_arg),
         )
         .subcommand(
             Command::new("code")
-                .about("Generate code based on requirements (no history)")
-                .arg(Arg::new("prompt").num_args(1..)),
-        )
-        .subcommand(
-            Command::new("do")
-                .about("EXPERIMENTAL: Work in progress. Give Galactica control!")
-                .arg(Arg::new("prompt").num_args(1..)),
+                .about("Generate code based on requirements")
+                .arg(&session_arg)
+                .arg(&no_stream_arg)
+                .arg(&no_history_arg)
+                .arg(&prompt_arg),
         )
         .subcommand(
             Command::new("explain")
                 .about("EXPERIMENTAL: Work in progress. Ask for a detailed explanation with reflexion.")
-                .arg(Arg::new("prompt").num_args(1..)),
+                .arg(&session_arg)
+                .arg(&no_stream_arg)
+                .arg(&no_history_arg)
+                .arg(&prompt_arg),
         )
         .subcommand(Command::new("history").about("Show history"))
         .subcommand(Command::new("reset").about("Reset history"))
@@ -159,7 +178,10 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Conversation(prompt.clone()),
             };
 
-            call_instruction(&prompt, &specific, false, true).await?;
+            let no_stream = submatches.get_flag("no-stream");
+            let no_history = submatches.get_flag("no-history");
+
+            call_instruction(&prompt, &specific, !no_stream, !no_history).await?;
         }
         Some(("code", submatches)) => {
             let prompt = get_prompt(submatches)?;
@@ -171,28 +193,10 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::GenerateCode(prompt.clone()),
             };
 
-            call_instruction(&prompt, &specific, false, false).await?;
-        }
-        Some(("stream", submatches)) => {
-            let prompt = get_prompt(submatches)?;
+            let no_stream = submatches.get_flag("no-stream");
+            let no_history = submatches.get_flag("no-history");
 
-            // Do we have data passed to us via stdin?
-            //
-            let specific = match get_stdin() {
-                Some(stdin) => Instruction::ConversationWithReference(prompt.clone(), stdin),
-                None => Instruction::Conversation(prompt.clone()),
-            };
-
-            call_instruction(&prompt, &specific, true, true).await?;
-        }
-        Some(("do", submatches)) => {
-            let prompt = get_prompt(submatches)?;
-
-            // Do we have data passed to us via stdin?
-            //
-            let specific = Instruction::Do(prompt.clone());
-
-            call_instruction(&prompt, &specific, true, true).await?;
+            call_instruction(&prompt, &specific, !no_stream, !no_history).await?;
         }
         Some(("explain", submatches)) => {
             let prompt = get_prompt(submatches)?;
@@ -204,7 +208,10 @@ async fn invoke() -> Result<(), ClientError> {
                 None => Instruction::Explain(prompt.clone()),
             };
 
-            call_instruction(&prompt, &instruction, true, true).await?;
+            let no_stream = submatches.get_flag("no-stream");
+            let no_history = submatches.get_flag("no-history");
+
+            call_instruction(&prompt, &instruction, !no_stream, !no_history).await?;
         }
         Some(("integration", submatches)) => {
             integrations::cli_integrations(submatches)?;
