@@ -23,7 +23,7 @@ jobs:
       - name: Set PACKAGE_VERSION
         run: echo "PACKAGE_VERSION=0.1.0" >> $GITHUB_ENV
       - name: Set GIT_VERSION
-        run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        run: echo "GIT_VERSION=build.$(git rev-list --branches --count).$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Set VER
         run: echo "VER=$PACKAGE_VERSION+$GIT_VERSION" >> $GITHUB_ENV
       - name: Print
@@ -59,7 +59,7 @@ jobs:
       - name: Set PACKAGE_VERSION
         run: echo "PACKAGE_VERSION=0.1.0" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Set GIT_VERSION
-        run: echo "GIT_VERSION=build.$(git rev-list --all --count).$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: echo "GIT_VERSION=build.$(git rev-list --branches --count).$(git rev-parse --short HEAD)" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Set VER
         run: echo "VER=${{ env.PACKAGE_VERSION }}+${{ env.GIT_VERSION }}" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Print
