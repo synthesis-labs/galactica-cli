@@ -137,7 +137,7 @@ pub async fn instruction_stream(
 
     // To fix, must eat until the first newline, else buffer
 
-    while let Some(chunk) = response.chunk().await.unwrap() {
+    while let Ok(Some(chunk)) = response.chunk().await {
         let chunk_str: &str = std::str::from_utf8(&chunk).unwrap();
 
         // Accumulate to the buffer continuously
@@ -173,6 +173,8 @@ pub async fn instruction_stream(
             }
         }
     }
+
+    // print!("{}", buffer.green());
 
     Ok(result)
 }
