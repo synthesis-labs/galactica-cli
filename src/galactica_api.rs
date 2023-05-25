@@ -1,13 +1,15 @@
 use std::io::{self, Write};
 
 use colored::Colorize;
-use galactica_lib::auth::{DiscordAccessToken, GetTokenRequest, GetTokenResponse};
+use galactica_lib::auth::{
+    DiscordAccessToken, GetTokenRequest, GetTokenResponse, TokenValidRequest, TokenValidResponse,
+};
 use galactica_lib::parser;
 use galactica_lib::specs::{
     ErrorResponse, HistoryEntry, Instruction, InstructionChunk, InstructionRequest,
     InstructionResponse, UpdateRequest, UpdateResponse,
 };
-use galactica_lib::stream_data_parser::stream_data_parser;
+use galactica_lib::stream_data_parser::{stream_data_parser, StreamRecordType};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -90,6 +92,21 @@ pub async fn get_token(config: &Config, code: &String) -> Result<DiscordAccessTo
     Ok(response.token)
 }
 
+pub async fn token_valid(
+    config: &Config,
+    token: &DiscordAccessToken,
+) -> Result<Option<DiscordAccessToken>, ClientError> {
+    let response: TokenValidResponse = api_call(
+        config,
+        "/auth/token_valid",
+        &TokenValidRequest {
+            token: token.clone(),
+        },
+    )
+    .await?;
+    Ok(response.refreshed_token)
+}
+
 pub async fn instruction(
     config: &Config,
     instruction: Instruction,
@@ -144,7 +161,9 @@ pub async fn instruction_stream(
         buffer.push_str(chunk_str);
 
         // Run the stream data parser to grab out complete packets
-        if let Ok((consumed, packets)) = parser::parse(stream_data_parser(), &buffer) {
+        if let Ok((consumed, StreamRecordType::Data(packets))) =
+            parser::parse(stream_data_parser(), &buffer)
+        {
             // println!("Consumed: {}, Packets: {:?}", consumed, packets);
 
             // Drop this many consumed chars from buffer

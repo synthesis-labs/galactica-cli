@@ -12,6 +12,24 @@ use tokio::runtime::Builder;
 #[cfg(windows)]
 use colored::control;
 
+async fn validate_and_update_token() -> Result<(), ClientError> {
+    let config = config::read()?;
+
+    match &config.token {
+        None => Err(ClientError::NotLoggedIn("Please login first!".to_string())),
+        Some(token) => {
+            if let Some(refreshed_token) = galactica_api::token_valid(&config, &token).await? {
+                // Write the new token back to the config
+                //
+                let mut mut_config = config::read()?;
+                mut_config.token = Some(refreshed_token);
+                config::write(&mut_config)?;
+            };
+            Ok(())
+        }
+    }
+}
+
 async fn call_instruction(
     prompt: &String,
     instruction: &Instruction,
@@ -21,9 +39,7 @@ async fn call_instruction(
 ) -> Result<String, ClientError> {
     let config = config::read()?;
 
-    if config.token.is_none() {
-        return Err(ClientError::NotLoggedIn("Please login first!".to_string()));
-    }
+    validate_and_update_token().await?;
 
     let session = sessions::read(session_name)?;
     let reply = if stream {
