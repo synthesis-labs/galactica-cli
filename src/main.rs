@@ -37,9 +37,8 @@ async fn call_instruction(
     add_history: bool,
     session_name: &String,
 ) -> Result<String, ClientError> {
-    let config = config::read()?;
-
     validate_and_update_token().await?;
+    let config = config::read()?;
 
     let session = sessions::read(session_name)?;
     let reply = if stream {
