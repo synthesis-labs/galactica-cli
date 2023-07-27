@@ -78,7 +78,7 @@ async fn call_instruction(
 }
 
 fn cli() -> Command {
-    let prompt_arg = Arg::new("prompt").num_args(1..);
+    let prompt_arg = Arg::new("prompt").num_args(1..).required(true);
     let session_arg = Arg::new("session")
         .short('s')
         .long("session")
@@ -125,6 +125,15 @@ fn cli() -> Command {
                 .arg(&session_arg)
                 .arg(&no_stream_arg)
                 .arg(&no_history_arg)
+                .arg(&prompt_arg),
+        )
+        .subcommand(
+            Command::new("invoke")
+                .about("Invoke a custom template (preconfigured on https://galacticai.co)")
+                .arg(&session_arg)
+                .arg(&no_stream_arg)
+                .arg(&no_history_arg)
+                .arg(Arg::new("prompt_name").num_args(1).required(true))
                 .arg(&prompt_arg),
         )
         .subcommand(sessions::cli_session_cmd())
@@ -187,6 +196,30 @@ async fn invoke() -> Result<(), ClientError> {
         }
         Some(("version", _submatches)) => {
             println!("{}", updates::get_current_version());
+        }
+        Some(("invoke", submatches)) => {
+            let prompt_name: String = submatches
+                .get_one::<String>("prompt_name")
+                .ok_or(ClientError::CommandError(
+                    "No prompt name provided!".to_string(),
+                ))?
+                .clone();
+            let prompt = get_prompt(submatches)?;
+
+            // Do we have data passed to us via stdin?
+            //
+            let specific = match get_stdin() {
+                Some(stdin) => Instruction::Invoke(prompt_name.clone(), prompt.clone(), stdin),
+                None => {
+                    Instruction::Invoke(prompt_name.clone(), prompt.clone(), "none".to_string())
+                }
+            };
+
+            let session: &String = submatches.get_one("session").unwrap();
+            let no_stream = submatches.get_flag("no-stream");
+            let no_history = submatches.get_flag("no-history");
+
+            call_instruction(&prompt, &specific, !no_stream, !no_history, &session).await?;
         }
         Some(("chat", submatches)) => {
             let prompt = get_prompt(submatches)?;
