@@ -9,7 +9,8 @@ use rocket::{get, info, response::Redirect, routes, Shutdown, State};
 
 use crate::{config::Config, errors::ClientError, galactica_api};
 
-const DISCORD_LOGIN: &str = "https://discord.com/api/oauth2/authorize?client_id=1081168959941918801&redirect_uri=http%3A%2F%2F127.0.0.1%3A32888%2Fdiscord%2Foauth&response_type=code&scope=identify%20email";
+const REDIRECT_URL: &str = "http://127.0.0.1:32888/discord/oauth";
+const DISCORD_LOGIN: &str = "https://discord.com/api/oauth2/authorize?client_id=1081168959941918801&response_type=code&scope=identify%20email";
 
 pub async fn open_browser() -> () {
     sleep(Duration::from_secs(1)).await;
@@ -21,7 +22,7 @@ pub async fn open_browser() -> () {
             println!("Error while opening browser: {}", err);
             println!(
                 "Failed to automatically open browser\nPlease open the url directly!\n\n{}",
-                DISCORD_LOGIN
+                format!("{}&redirect_url={}", DISCORD_LOGIN, REDIRECT_URL)
             );
         }
         Ok(_) => (),
@@ -65,7 +66,7 @@ pub async fn perform_login(current_config: Config) -> Result<Config, ClientError
 
 #[get("/")]
 async fn root() -> Redirect {
-    Redirect::to(DISCORD_LOGIN)
+    Redirect::to(format!("{}&redirect_url={}", DISCORD_LOGIN, REDIRECT_URL))
 }
 
 #[get("/discord/oauth?<code>")]
@@ -82,7 +83,13 @@ async fn discord_oauth_code_receive(
 
     // Now get the token from the webservice
 
-    match galactica_api::get_token(&readable_config, &code.to_string()).await {
+    match galactica_api::get_token(
+        &readable_config,
+        &code.to_string(),
+        &REDIRECT_URL.to_string(),
+    )
+    .await
+    {
         Err(err) => format!(
             "An error occured while attempting to login: {}\nPlease retry?",
             err.to_string()

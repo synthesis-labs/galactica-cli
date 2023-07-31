@@ -82,11 +82,18 @@ where
     Ok(resp)
 }
 
-pub async fn get_token(config: &Config, code: &String) -> Result<DiscordAccessToken, ClientError> {
+pub async fn get_token(
+    config: &Config,
+    code: &String,
+    redirect_url: &String,
+) -> Result<DiscordAccessToken, ClientError> {
     let response: GetTokenResponse = api_call(
         config,
         "/auth/get_token",
-        &GetTokenRequest { code: code.clone() },
+        &GetTokenRequest {
+            code: code.clone(),
+            redirect_url: Some(redirect_url.clone()),
+        },
     )
     .await?;
     Ok(response.token)
